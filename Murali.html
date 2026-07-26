@@ -575,6 +575,8 @@ const EXPENSE_CATS=["Stock purchase","Lab / surfacing charges","Delivery & trans
  "Equipment","Marketing","Insurance","GST & taxes paid","Other"];
 const TERMS_OPTS=["0","7","15","30","45","60"];
 const GST_RATES=["0","5","12","18","28"];
+// Used to power native browser autocomplete on email fields (see EMAIL_DOMAINS-driven <datalist> below).
+const EMAIL_DOMAINS=["gmail.com","yahoo.com","yahoo.co.in","outlook.com","hotmail.com","icloud.com","rediffmail.com"];
 const STATES=["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana",
  "Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
  "Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand",
@@ -610,6 +612,109 @@ const emptyEye=()=>({sph:"",cyl:"",axis:"",add:"",prism:"",base:"—"});
 const emptyPractice=()=>({name:"",contact:"",phone:"",email:"",gstin:"",addr1:"",addr2:"",city:"",district:"",
  state:"",pin:"",area:"",terms:"30",notes:""});
 const emptyBiz=()=>({name:"",gstin:"",state:"",gst:"12",hsnLens:"9001",hsnFrame:"9003",hsnReader:"9004"});
+
+/* ---- GSTIN validation (format + official checksum) & state lookup ---- */
+// 15-char GSTIN: [state 2][PAN 10][entity 1][Z][checksum 1]
+const GSTIN_STATE_CODE={"01":"Jammu & Kashmir","02":"Himachal Pradesh","03":"Punjab","04":"Chandigarh",
+"05":"Uttarakhand","06":"Haryana","07":"Delhi","08":"Rajasthan","09":"Uttar Pradesh","10":"Bihar",
+"11":"Sikkim","12":"Arunachal Pradesh","13":"Nagaland","14":"Manipur","15":"Mizoram","16":"Tripura",
+"17":"Meghalaya","18":"Assam","19":"West Bengal","20":"Jharkhand","21":"Odisha","22":"Chhattisgarh",
+"23":"Madhya Pradesh","24":"Gujarat","25":"Dadra & Nagar Haveli and Daman & Diu","26":"Dadra & Nagar Haveli and Daman & Diu",
+"27":"Maharashtra","28":"Andhra Pradesh","29":"Karnataka","30":"Goa","31":"Lakshadweep","32":"Kerala",
+"33":"Tamil Nadu","34":"Puducherry","35":"Andaman & Nicobar Islands","36":"Telangana","37":"Andhra Pradesh","38":"Ladakh"};
+function gstinCheckDigit(first14){
+  const CS="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"; let factor=2,sum=0; const mod=36;
+  for(let i=first14.length-1;i>=0;i--){
+    const cp=CS.indexOf(first14[i]); if(cp<0)return null;
+    let d=factor*cp; d=Math.floor(d/mod)+(d%mod);
+    sum+=d; factor=(factor===2)?1:2;
+  }
+  return CS[(mod-(sum%mod))%mod];
+}
+function validateGSTIN(raw){
+  const v=(raw||"").toUpperCase().trim();
+  if(!v) return {status:"empty"};
+  if(v.length!==15) return {status:"bad",msg:"GSTIN must be exactly 15 characters (currently "+v.length+")."};
+  if(!/^[0-9A-Z]{15}$/.test(v)) return {status:"bad",msg:"GSTIN can only contain letters and numbers."};
+  const stateCode=v.slice(0,2);
+  if(!GSTIN_STATE_CODE[stateCode]) return {status:"bad",msg:"First 2 characters ("+stateCode+") aren't a valid state code."};
+  if(!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(v.slice(2,12))) return {status:"bad",msg:"Characters 3–12 must match PAN format: 5 letters, 4 digits, 1 letter."};
+  if(!/^[0-9A-Z]$/.test(v[12])) return {status:"bad",msg:"Character 13 (registration number for this PAN) is invalid."};
+  if(v[13]!=="Z") return {status:"bad",msg:"Character 14 must be the letter Z."};
+  const expected=gstinCheckDigit(v.slice(0,14));
+  if(expected===null||v[14]!==expected) return {status:"bad",msg:"Checksum (last character) doesn't match — there's likely a typo in the GSTIN."};
+  return {status:"ok",state:GSTIN_STATE_CODE[stateCode],stateCode:stateCode};
+}
+// Position-aware check, used while the person is still typing: as soon as a character
+// doesn't match what that slot expects (e.g. a letter where a digit belongs), flag it
+// immediately instead of waiting for all 15 characters or for the field to lose focus.
+function gstinTypeAt(i){ return i<2?"digit": i<7?"letter": i<11?"digit": i===11?"letter": i===12?"alnum": i===13?"Z":"alnum"; }
+function gstinFeedback(raw){
+  const v=(raw||"").toUpperCase();
+  if(!v) return {status:"empty"};
+  for(let i=0;i<v.length;i++){
+    const ch=v[i], exp=gstinTypeAt(i);
+    if(exp==="digit"&&!/[0-9]/.test(ch))
+      return {status:"bad",msg:"Character "+(i+1)+" should be a number, not a letter"+(i<2?" — the first 2 characters are the state code.":".")};
+    if(exp==="letter"&&!/[A-Z]/.test(ch))
+      return {status:"bad",msg:"Character "+(i+1)+" should be a letter, not a number"+(i>=2&&i<7?" — part of the PAN.":".")};
+    if(exp==="Z"&&ch!=="Z")
+      return {status:"bad",msg:"Character 14 must be the letter Z, not "+ch+"."};
+  }
+  if(v.length>=2&&!GSTIN_STATE_CODE[v.slice(0,2)])
+    return {status:"bad",msg:"First 2 characters ("+v.slice(0,2)+") aren't a valid state code."};
+  if(v.length<15) return {status:"partial"};
+  return validateGSTIN(v);
+}
+// Shared UI updater — call on every keystroke, on blur, and before a lookup.
+// Updates the border colour + inline message, and (once the GSTIN is fully valid)
+// silently fills in the customer's state if it's still blank.
+function applyGstinUI(el){
+  const kind=el.id.replace("gstin_","");
+  const obj = kind==="pf"&&PE ? PE : (kind==="nf"&&FS&&FS.np ? FS.np : null);
+  const stateSel = kind==="pf" ? 'select[data-pf="state"]' : (kind==="nf" ? 'select[data-nf="state"]' : null);
+  const res=gstinFeedback(el.value);
+  const errEl=document.getElementById(el.id+"_err");
+  if(errEl){
+    if(res.status==="bad"){ errEl.textContent=res.msg; errEl.style.color="#DC2626"; errEl.classList.remove("hide"); }
+    else if(res.status==="ok"){ errEl.innerHTML=ic("check",11)+" Valid — "+esc(res.state)+" (state code "+res.stateCode+")"; errEl.style.color="#16A34A"; errEl.classList.remove("hide"); }
+    else { errEl.textContent=""; errEl.classList.add("hide"); }
+  }
+  el.style.borderColor = res.status==="bad" ? "#DC2626" : (res.status==="ok" ? "#16A34A" : "");
+  if(res.status==="ok"&&obj&&!obj.state){
+    obj.state=res.state;
+    if(stateSel){ const sel=MODAL().querySelector(stateSel); if(sel) sel.value=res.state; }
+  }
+  return res;
+}
+// Renders an <input type="email"> plus a small inline row of domain-suggestion chips (reusing
+// the app's existing .chips/.chip style). The chips only appear once the person types "@" —
+// before that they're just typing their name/local-part freely, no popup in the way. This is
+// deliberately NOT a native <datalist>, because Safari/iOS renders that as a full-width overlay
+// that covers the rest of the form (as opposed to a small row that sits inline and pushes
+// content down, like every other suggestion UI in this app).
+function emailFieldHtml(dataAttr,key,value,id){
+  return '<input class="inp" id="'+id+'" data-'+dataAttr+'="'+key+'" data-act="emailguard" type="email" '
+    +'value="'+esc(value)+'" placeholder="orders@…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">'
+    +'<div class="chips hide" id="'+id+'_sugg" style="margin-top:6px"></div>';
+}
+function updateEmailSuggestions(el){
+  const box=document.getElementById(el.id+"_sugg");
+  if(!box) return;
+  const v=el.value, at=v.indexOf("@");
+  if(at<0||!v.slice(0,at)){ box.classList.add("hide"); box.innerHTML=""; return; } // nothing to suggest before "@" is typed
+  const local=v.slice(0,at), domainTyped=v.slice(at+1).toLowerCase();
+  const matches=EMAIL_DOMAINS.filter(d=>d.startsWith(domainTyped));
+  if(!matches.length||(matches.length===1&&matches[0]===domainTyped)){ box.classList.add("hide"); box.innerHTML=""; return; }
+  box.innerHTML=matches.map(d=>'<button type="button" class="chip" data-act="pickemail" data-target="'+el.id+'" data-full="'+esc(local+"@"+d)+'">'+esc(d)+'</button>').join("");
+  box.classList.remove("hide");
+}
+function gstinFieldExtra(id){
+  return '<p class="err hide" id="'+id+'_err"></p>'
+    +'<button type="button" class="hint-btn" data-act="razorpaycheck" data-kind="'+id.replace("gstin_","")+'" '
+    +'style="text-align:left;text-decoration:none;color:#0369A1;font-weight:700;margin-top:7px;display:inline-flex;align-items:center;gap:5px">'
+    +ic("upload",12)+' Check on Razorpay (free)</button>';
+}
 
 /* ---- money maths (GST-aware) ---- */
 const oQty=o=>Number(o.qty)||0;
@@ -677,6 +782,49 @@ function bar(label,value,max,sub,color,fmt){
   return '<div class="barrow"><div class="bartop"><span class="barlbl">'+esc(label)+'</span>'
     +'<span class="barval">'+f(value)+(sub?' <span class="barsub">· '+esc(sub)+'</span>':'')+'</span></div>'
     +'<div class="bartrack"><div class="barfill" style="width:'+p+'%;background:'+(color||"#0369A1")+'"></div></div></div>';
+}
+// Smooth curve through a set of {x,y} points, using quadratic Bézier segments through the
+// midpoint of each consecutive pair — a lightweight way to get a rounded trend line without
+// pulling in a charting library.
+function smoothPath(pts){
+  if(pts.length===1) return "M "+pts[0].x+" "+pts[0].y;
+  let d="M "+pts[0].x+" "+pts[0].y+" ";
+  for(let i=0;i<pts.length-1;i++){
+    const cur=pts[i], next=pts[i+1];
+    const midX=(cur.x+next.x)/2, midY=(cur.y+next.y)/2;
+    d+="Q "+cur.x+" "+cur.y+" "+midX+" "+midY+" ";
+  }
+  d+="L "+pts[pts.length-1].x+" "+pts[pts.length-1].y;
+  return d;
+}
+// Renders a smooth gradient-filled trend line (revenue by month) plus a month-label row —
+// the same "curve with soft fill under it" pattern used by most modern analytics dashboards.
+function trendChart(mk,mm,color){
+  color=color||"#0369A1";
+  const W=320,H=118,padTop=24,padBottom=6;
+  const n=mk.length;
+  const vals=mk.map(k=>mm[k].rev);
+  const maxV=Math.max(1,...vals);
+  const pts=vals.map((v,i)=>({x:n>1?(i/(n-1))*W:W/2, y:padTop+(1-(v/maxV))*(H-padTop-padBottom), v:v}));
+  const linePath=smoothPath(pts);
+  const areaPath=linePath+" L "+pts[n-1].x+" "+H+" L "+pts[0].x+" "+H+" Z";
+  const gid="tg"+Math.random().toString(36).slice(2,8);
+  const last=pts[n-1];
+  const dots=pts.map((p,i)=>i===n-1
+    ?'<circle cx="'+p.x+'" cy="'+p.y+'" r="4.2" fill="#fff" stroke="'+color+'" stroke-width="2.5"/>'
+    :'<circle cx="'+p.x+'" cy="'+p.y+'" r="2" fill="'+color+'" opacity=".5"/>').join("");
+  const lblX=Math.min(W-2,Math.max(30,last.x));
+  const svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="112" preserveAspectRatio="none" style="display:block;overflow:visible">'
+    +'<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'
+    +'<stop offset="0%" stop-color="'+color+'" stop-opacity=".3"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'
+    +'<path d="'+areaPath+'" fill="url(#'+gid+')" stroke="none"/>'
+    +'<path d="'+linePath+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    +dots
+    +'<text x="'+lblX+'" y="'+Math.max(13,last.y-9)+'" text-anchor="end" font-size="11" font-weight="700" fill="'+color+'">'+esc(money0(last.v))+'</text>'
+    +'</svg>'
+    +'<div style="display:flex;justify-content:space-between;margin-top:2px">'
+    +mk.map(k=>'<span style="font-size:10px;color:#94A3B8;font-weight:600">'+esc(monthLabel(k))+'</span>').join("")+'</div>';
+  return svg;
 }
 function kpi(label,value,cls,big,delta){
   let d="";
@@ -851,7 +999,6 @@ function viewReports(){
     ST.orders.filter(o=>o.paid&&o.paidAt).forEach(o=>{const k=monthKey(o.paidAt);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].cash+=orderReceivable(o);});
     ST.expenses.forEach(e=>{const k=monthKey(e.date);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].exp+=Number(e.amount)||0;});
     const mk=Object.keys(mm).sort().slice(-8);
-    const maxM=Math.max(1,...mk.map(k=>mm[k].rev));
     body='<div class="kpigrid">'
       +kpi("Revenue (excl GST)",money0(revenue),"",false,dRev)
       +kpi("Cash collected",money0(cash),"pos")
@@ -869,9 +1016,7 @@ function viewReports(){
       +(missing>0?'<div class="warnbox">'+missing+' order'+(missing!==1?"s":"")+' in this period ha'+(missing!==1?"ve":"s")
         +' no cost price, so margin is overstated.</div>':'')
       +'<div class="repcard"><div class="rep-t">Revenue by month</div>'
-      +(mk.length?mk.map(k=>{const m=mm[k];const gp=m.rev-m.cost-m.exp;
-        return bar(monthLabel(k),m.rev,maxM,"cash "+money0(m.cash)+" · net "+money0(gp),gp>=0?"#0369A1":"#DC2626");}).join("")
-        :'<div class="rep-e">No data yet.</div>')
+      +(mk.length?trendChart(mk,mm,"#0369A1"):'<div class="rep-e">No data yet.</div>')
       +'</div>';
   }
 
@@ -1049,9 +1194,10 @@ function openSettings(){
   openModal(sheetHead("Settings")
     +'<div class="sectitle">Your business</div>'
     +'<div class="field"><label class="lbl">Business name</label>'
-    +'<input class="inp" data-bf="name" value="'+esc(b.name)+'" placeholder="e.g. Sharma Optical Supplies"></div>'
+    +'<input class="inp" data-bf="name" value="'+esc(b.name)+'" placeholder="e.g. Savera Optical Supplies"></div>'
     +'<div class="field"><label class="lbl">Your GSTIN</label>'
-    +'<input class="inp" data-bf="gstin" value="'+esc(b.gstin)+'" placeholder="15-character GSTIN" maxlength="15" style="text-transform:uppercase"></div>'
+    +'<input class="inp" id="gstin_bf" data-bf="gstin" data-act="gstinguard" value="'+esc(b.gstin)+'" placeholder="15-character GSTIN" maxlength="15" style="text-transform:uppercase">'
+    +gstinFieldExtra("gstin_bf")+'</div>'
     +'<div class="field"><label class="lbl">Your state <span style="font-weight:400;color:#94A3B8">— decides CGST+SGST vs IGST</span></label>'
     +'<select class="inp" data-bf="state"><option value="">Select…</option>'+optsOf(STATES,b.state)+'</select></div>'
     +'<div class="sectitle">Defaults for new orders</div>'
@@ -1224,13 +1370,14 @@ function renderPracticeEditor(){
     '<button class="chip'+(f[k]===v?" on":"")+'" data-act="psetv" data-k="'+k+'" data-v="'+esc(v)+'">'+esc(v)+'</button>').join("")+'</div>':"";
 
   openModal(sheetHead(isNew?"Add customer":"Edit customer")
-    +'<div class="field"><label class="lbl">Shop / practice name</label>'+inp("name","e.g. Sharma Opticals")
+    +'<div class="field"><label class="lbl">Shop / practice name</label>'+inp("name","e.g. Savera Opticians")
     +(dup?'<p class="err">A customer with this name already exists.</p>':'')+'</div>'
     +'<div class="sectitle">Contact</div>'
     +'<div class="field"><label class="lbl">Contact person</label>'+inp("contact","Owner / manager")+'</div>'
     +'<div class="row2"><div class="field"><label class="lbl">Mobile</label>'+inp("phone","+91 98xxxxxxxx","tel",' maxlength="14" inputmode="tel" data-act="phoneguard"')+'</div>'
-    +'<div class="field"><label class="lbl">Email</label>'+inp("email","orders@…","email")+'</div></div>'
-    +'<div class="field"><label class="lbl">GSTIN</label>'+inp("gstin","15-character GSTIN","text",' maxlength="15" style="text-transform:uppercase"')+'</div>'
+    +'<div class="field"><label class="lbl">Email</label>'+emailFieldHtml("pf","email",f.email,"email_pf")+'</div></div>'
+    +'<div class="field"><label class="lbl">GSTIN</label>'+inp("gstin","15-character GSTIN","text",' id="gstin_pf" data-act="gstinguard" maxlength="15" style="text-transform:uppercase"')
+    +gstinFieldExtra("gstin_pf")+'</div>'
     +'<div class="sectitle">Address</div>'
     +'<div class="field"><label class="lbl">Address line 1</label>'+inp("addr1","Shop no., building, street")+'</div>'
     +'<div class="field"><label class="lbl">Address line 2 / area</label>'+inp("addr2","Locality")+'</div>'
@@ -1456,11 +1603,13 @@ function renderOrderForm(){
         +(chosen.terms?'<span style="color:#64748B"> · terms '+(chosen.terms==="0"?"on delivery":esc(chosen.terms)+"d")+'</span>':'')+'</div>':'');
   } else {
     const ni=(k,ph,t,ex)=>'<input class="inp" data-nf="'+k+'" type="'+(t||"text")+'" value="'+esc(f.np[k])+'" placeholder="'+esc(ph||"")+'"'+(ex||"")+'>';
-    cust='<div class="field"><label class="lbl">Shop / practice name</label>'+ni("name","e.g. Sharma Opticals")
+    cust='<div class="field"><label class="lbl">Shop / practice name</label>'+ni("name","e.g. Savera Opticians")
       +(dupNew?'<p class="err">That customer already exists — switch to “Existing customer”.</p>':'')+'</div>'
       +'<div class="field"><label class="lbl">Contact person</label>'+ni("contact","Owner / manager")+'</div>'
       +'<div class="row2"><div class="field"><label class="lbl">Mobile</label>'+ni("phone","+91 98xxxxxxxx","tel",' maxlength="14" inputmode="tel" data-act="phoneguard"')+'</div>'
-      +'<div class="field"><label class="lbl">GSTIN</label>'+ni("gstin","15-char","text",' maxlength="15" style="text-transform:uppercase"')+'</div></div>'
+      +'<div class="field"><label class="lbl">Email</label>'+emailFieldHtml("nf","email",f.np.email,"email_nf")+'</div></div>'
+      +'<div class="field"><label class="lbl">GSTIN</label>'+ni("gstin","15-character GSTIN","text",' id="gstin_nf" data-act="gstinguard" maxlength="15" style="text-transform:uppercase"')
+      +gstinFieldExtra("gstin_nf")+'</div>'
       +'<div class="field"><label class="lbl">Address</label>'+ni("addr1","Shop no., street")+'</div>'
       +'<div class="row2"><div class="field"><label class="lbl">City / town</label>'+ni("city","e.g. Hyderabad")+'</div>'
       +'<div class="field"><label class="lbl">PIN code</label>'+ni("pin","500001","tel",' maxlength="6" data-act="pinguard"')+'</div></div>'
@@ -1869,6 +2018,21 @@ document.addEventListener("click",async function(ev){
     case "newpractice": openPracticeEditor(""); break;
     case "editpractice": openPracticeEditor(v); break;
 
+    case "pickemail": {
+      const inp=document.getElementById(t.getAttribute("data-target"));
+      if(inp){ inp.value=t.getAttribute("data-full"); updateEmailSuggestions(inp); inp.focus(); }
+      break; }
+
+    case "razorpaycheck": {
+      const kind=t.getAttribute("data-kind");
+      const el=document.getElementById("gstin_"+kind);
+      const v=el?el.value.toUpperCase().trim():"";
+      if(!v){ showToast("Enter a GSTIN first","warn"); break; }
+      try{ await navigator.clipboard.writeText(v); showToast("GSTIN copied — paste it into Razorpay's search box"); }
+      catch(e){ showToast("Opening Razorpay — copy the GSTIN manually ("+v+")","warn"); }
+      window.open("https://razorpay.com/gst-number-search/","_blank");
+      break; }
+
     case "psetv": {
       const m=MODAL(); m.querySelectorAll("[data-pf]").forEach(el=>{PE[el.getAttribute("data-pf")]=el.value;});
       PE[t.getAttribute("data-k")]=v; renderPracticeEditor(); break; }
@@ -1954,6 +2118,27 @@ document.addEventListener("click",async function(ev){
   }
 });
 
+// GSTIN validation: runs on every keystroke (see the "input" listener below) and again
+// here on blur, in case a value was pasted in without triggering individual key events.
+document.addEventListener("blur",function(ev){
+  const el=ev.target;
+  if(el.getAttribute&&el.getAttribute("data-act")==="gstinguard"){
+    const v=el.value.toUpperCase().trim();
+    if(v!==el.value) el.value=v;
+    applyGstinUI(el);
+  }
+  if(el.getAttribute&&el.getAttribute("data-act")==="emailguard"){
+    const box=document.getElementById(el.id+"_sugg");
+    if(box){ box.classList.add("hide"); box.innerHTML=""; }
+  }
+},true);
+
+// Tapping a domain-suggestion chip shouldn't blur the email input first (that would hide the
+// chip row before the click/tap is registered) — keep focus on the input the whole time.
+document.addEventListener("mousedown",function(ev){
+  if(ev.target&&ev.target.getAttribute&&ev.target.getAttribute("data-act")==="pickemail") ev.preventDefault();
+});
+
 document.addEventListener("input",function(ev){
   const el=ev.target;
   if(el.getAttribute&&el.getAttribute("data-act")==="axisguard"){
@@ -1968,6 +2153,14 @@ document.addEventListener("input",function(ev){
     if(digits.length>10) digits=digits.slice(0,10);
     const v = hadPlus ? ("+91 "+digits) : digits;
     if(v!==el.value) el.value=v;
+  }
+  if(el.getAttribute&&el.getAttribute("data-act")==="gstinguard"){
+    let v=el.value.toUpperCase().replace(/[^0-9A-Z]/g,"").slice(0,15);
+    if(v!==el.value) el.value=v;
+    applyGstinUI(el); // validates on every keystroke — flags a wrong character (e.g. a letter where a digit belongs) immediately
+  }
+  if(el.getAttribute&&el.getAttribute("data-act")==="emailguard"){
+    updateEmailSuggestions(el);
   }
   if(el.getAttribute&&el.getAttribute("data-act")==="pinguard"){
     let v=el.value.replace(/[^0-9]/g,"").slice(0,6);
