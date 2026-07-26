@@ -153,6 +153,13 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 #toast.toast-ok svg{color:#4ADE80}
 #toast.toast-warn{background:#7C2D12}
 #toast.toast-warn svg{color:#FDBA74}
+#swupdate{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 98px);max-width:452px;margin:0 auto;
+ background:#0F172A;color:#fff;border-radius:16px;padding:12px 10px 12px 16px;display:flex;align-items:center;
+ justify-content:space-between;gap:10px;font-size:12.5px;font-weight:700;box-shadow:0 10px 28px -6px rgba(15,23,42,.45);
+ z-index:400;animation:swupin .32s cubic-bezier(.22,.9,.35,1)}
+@keyframes swupin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+#swupdate button{background:#fff;color:#0F172A;border:none;border-radius:11px;padding:9px 14px;font-weight:800;font-size:12px;white-space:nowrap}
+#swupdate button:active{transform:scale(.96)}
 .sheet{background:#F1F5F9;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:10px 18px 30px;max-height:93vh;overflow-y:auto;
  box-shadow:0 -8px 32px rgba(15,23,42,.18);animation:slideup .2s cubic-bezier(.32,.72,0,1)}
 @keyframes slideup{from{transform:translateY(24px);opacity:.6}to{transform:translateY(0);opacity:1}}
@@ -2215,7 +2222,48 @@ document.addEventListener("change",function(ev){
 })();
 
 if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js").catch(function(){});
+  navigator.serviceWorker.register("sw.js").then(function(reg){
+
+    // "Check for updates on every launch": ask the browser to re-fetch sw.js right away,
+    // and again whenever the app is brought back to the foreground (covers reopening the
+    // PWA from the home screen after it's been backgrounded for a while — the most common
+    // way people actually relaunch it).
+    reg.update().catch(function(){});
+    document.addEventListener("visibilitychange",function(){
+      if(document.visibilityState==="visible") reg.update().catch(function(){});
+    });
+
+    function showUpdateBanner(){
+      if(document.getElementById("swupdate"))return; // already showing
+      const b=document.createElement("div");
+      b.id="swupdate";
+      b.innerHTML='<span>'+ic("alert",15)+' Update available</span><button id="swupdate-btn">Tap to refresh</button>';
+      document.body.appendChild(b);
+      document.getElementById("swupdate-btn").onclick=function(){
+        b.querySelector("button").textContent="Updating…";
+        if(reg.waiting) reg.waiting.postMessage("SKIP_WAITING");
+      };
+    }
+
+    function trackInstalling(worker){
+      worker.addEventListener("statechange",function(){
+        // "installed" + an existing controller means this is an update to an already-running
+        // app (not the very first install), which is exactly when we want the banner.
+        if(worker.state==="installed"&&navigator.serviceWorker.controller) showUpdateBanner();
+      });
+    }
+    if(reg.waiting&&navigator.serviceWorker.controller) showUpdateBanner(); // an update was already waiting from a previous visit
+    if(reg.installing) trackInstalling(reg.installing);
+    reg.addEventListener("updatefound",function(){ trackInstalling(reg.installing); });
+
+    // Once the new service worker takes over, do the actual refresh — this only fires after
+    // the person taps the banner (which posts SKIP_WAITING), never on its own.
+    let reloaded=false;
+    navigator.serviceWorker.addEventListener("controllerchange",function(){
+      if(reloaded)return; reloaded=true;
+      window.location.reload();
+    });
+  }).catch(function(){});
 }
 </script>
 </body>
