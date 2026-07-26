@@ -1,0 +1,15 @@
+{
+  "name": "Murali — Lens Order Book",
+  "short_name": "Murali",
+  "description": "Prescription lens orders, statements and margins for optical wholesalers.",
+  "start_url": "./Murali.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F1F5F9",
+  "theme_color": "#0369A1",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

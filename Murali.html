@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Murali — Lens Order Book</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0369A1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Murali">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;padding:0;background:#F1F5F9;overscroll-behavior-y:none;
+ width:100%;max-width:100%;overflow-x:hidden;
+ font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#0F172A}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+input,select{font-family:inherit}
+input:focus,select:focus{outline:none;border-color:#0369A1!important}
+::-webkit-scrollbar{width:0;height:0}
+.ic{flex-shrink:0;vertical-align:-2px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:96px}
+.pad{padding:0 18px}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important}
+.hide{display:none!important}
+
+.warnbar{display:flex;align-items:center;gap:6px;justify-content:center;background:#92400E;color:#fff;font-size:11.5px;padding:calc(8px + env(safe-area-inset-top)) 14px 8px;text-align:center;line-height:1.4}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding:calc(20px + env(safe-area-inset-top)) 18px 14px;gap:10px}
+.brandrow{display:flex;align-items:center;gap:7px}
+.mark{color:#0369A1;font-size:16px}
+h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
+.sub{margin:4px 0 0;font-size:12.5px;color:#64748B;font-weight:500}
+.urg{color:#DC2626;font-weight:700}
+.hdrbtns{display:flex;gap:7px;flex-shrink:0}
+.btn-dark{display:flex;align-items:center;gap:5px;background:#0F172A;color:#fff;padding:10px 13px;border-radius:11px;font-size:12.5px;font-weight:600;
+ box-shadow:0 1px 2px rgba(0,0,0,.08);transition:transform .1s}
+.btn-dark:active{transform:scale(.96)}
+.btn-ghost{display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #E2E8F0;color:#475569;width:38px;height:38px;border-radius:11px;
+ transition:transform .1s}
+.btn-ghost:active{transform:scale(.94)}
+
+.owed{margin:0 18px 14px;background:linear-gradient(150deg,#075985,#0C4A6E 70%);color:#fff;border-radius:18px;
+ padding:18px 20px;display:flex;justify-content:space-between;align-items:center;
+ box-shadow:0 10px 24px -8px rgba(3,105,161,.5)}
+.owed.exp{background:linear-gradient(150deg,#B45309,#78350F 70%);box-shadow:0 10px 24px -8px rgba(120,53,15,.45)}
+.owed-l{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.owed-v{font-size:28px;font-weight:800;margin-top:3px;letter-spacing:-.02em}
+
+.piperow{display:flex;gap:8px;padding:0 18px 14px}
+.pipe{flex:1;background:#fff;border:1.5px solid #EEF2F7;border-radius:15px;padding:13px 6px 12px;display:flex;
+ flex-direction:column;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(15,23,42,.04);transition:transform .1s}
+.pipe:active{transform:scale(.97)}
+.pipe.on{border-color:currentColor;box-shadow:0 2px 8px -2px rgba(3,105,161,.2)}
+.pipe-n{font-size:19px;font-weight:800;color:#0F172A;letter-spacing:-.01em}
+.pipe-l{font-size:9.6px;color:#64748B;text-align:center;line-height:1.25;font-weight:500}
+
+.searchwrap{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E2E8F0;border-radius:13px;padding:11px 13px;margin-bottom:10px}
+.searchwrap input{flex:1;border:none;background:none;font-size:16px;color:#0F172A;min-width:0}
+.searchwrap input::placeholder{color:#94A3B8}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:#fff;color:#475569;border:1px solid #E2E8F0;padding:7px 13px;border-radius:20px;font-size:12.5px;font-weight:600;white-space:nowrap;transition:transform .1s}
+.chip:active{transform:scale(.96)}
+.chip.on{background:#0F172A;color:#fff;border-color:#0F172A}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.empty{padding:46px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;color:#CBD5E1}
+.empty p{color:#64748B;font-size:14px;text-align:center;max-width:255px;line-height:1.5;margin:0}
+
+.card{background:#fff;border-radius:15px;box-shadow:0 1px 2px rgba(15,23,42,.04),0 1px 8px -4px rgba(15,23,42,.06);overflow:hidden;
+ border:1px solid #EDF2F7}
+.card-cancelled{opacity:.6}
+.card-top{display:flex;padding:14px 15px 13px;gap:12px;cursor:pointer;transition:background .1s}
+.card-top:active{background:#F8FAFC}
+.card-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+.card-town{font-size:11px;color:#64748B;margin-top:3px;display:flex;align-items:center;gap:3px;font-weight:500}
+.card-item{font-size:13px;color:#334155;margin-top:3px}
+.rxline{font-size:11.5px;color:#0369A1;margin-top:6px;background:#EFF6FF;display:inline-block;padding:4px 8px;border-radius:7px;font-weight:600}
+.card-meta{font-size:11.5px;color:#94A3B8;margin-top:6px}
+.jobref{font-weight:600;color:#64748B}
+.late{color:#DC2626;font-weight:700}
+.badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap;letter-spacing:.01em}
+.tag-paid{font-size:11px;font-weight:700;color:#0369A1}
+.tag-unpaid{font-size:11px;font-weight:700;color:#B45309}
+.card-total{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.qbar{display:flex;border-top:1px solid #EDF2F7}
+.qbar button{flex:1;padding:11px 6px;font-size:12.5px;font-weight:700;text-align:center;transition:background .1s}
+.qbar button:active{background:#F8FAFC}
+.qbar button+button{border-left:1px solid #EDF2F7}
+.q-paid{color:#0369A1}.q-unpaid{color:#B45309}.q-det{color:#64748B}
+
+.custcard{background:#fff;border-radius:15px;padding:14px;display:flex;align-items:center;gap:12px;
+ box-shadow:0 1px 2px rgba(15,23,42,.04),0 1px 8px -4px rgba(15,23,42,.06);border:1px solid #EDF2F7;cursor:pointer;transition:transform .1s}
+.custcard:active{transform:scale(.99)}
+.avatar{width:42px;height:42px;border-radius:13px;background:linear-gradient(150deg,#075985,#0C4A6E);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0}
+.cust-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+.cust-meta{font-size:12px;color:#64748B;margin-top:3px;font-weight:500}
+.cust-owed{font-size:12px;font-weight:700;color:#B45309;margin-top:4px}
+.iconbtn{padding:6px;color:#94A3B8;border-radius:8px;transition:background .1s}
+.iconbtn:active{background:#EDF2F7}
+.addbtn{width:100%;background:#fff;border:1.5px dashed #CBD5E1;color:#0369A1;padding:12px;border-radius:13px;
+ font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px;transition:transform .1s}
+.addbtn:active{transform:scale(.98)}
+
+.fab-wrap{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;pointer-events:none;z-index:20}
+.fab-wrap-inner{width:100%;max-width:480px;position:relative}
+.fab{position:absolute;right:18px;bottom:calc(78px + env(safe-area-inset-bottom));background:#0369A1;color:#fff;
+ width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;
+ box-shadow:0 8px 20px rgba(3,105,161,.38),0 2px 6px rgba(3,105,161,.25);pointer-events:auto;
+ transition:transform .12s ease,box-shadow .12s ease}
+.fab:active{transform:scale(.94);box-shadow:0 4px 12px rgba(3,105,161,.4)}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,.98);
+ backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px);
+ border-top:1px solid #E2E8F0;display:flex;padding:7px 4px max(8px,env(safe-area-inset-bottom));z-index:15;
+ box-shadow:0 -4px 16px -6px rgba(15,23,42,.06)}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 5px;color:#94A3B8;
+ border-radius:12px;transition:color .12s}
+.nav button.on{color:#0369A1}
+.nav span{font-size:10px;font-weight:700;letter-spacing:-.01em}
+
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;z-index:100;
+ animation:fadein .15s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.sheet{background:#F1F5F9;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:10px 18px 30px;max-height:93vh;overflow-y:auto;
+ box-shadow:0 -8px 32px rgba(15,23,42,.18);animation:slideup .2s cubic-bezier(.32,.72,0,1)}
+@keyframes slideup{from{transform:translateY(24px);opacity:.6}to{transform:translateY(0);opacity:1}}
+.handle{width:36px;height:4px;background:#CBD5E1;border-radius:4px;margin:0 auto 16px}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;gap:10px}
+.sheet-head h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet-sub{margin:4px 0 0;font-size:12.5px;color:#64748B;font-weight:500}
+
+.seg{display:flex;gap:4px;background:#EEF2F7;padding:4px;border-radius:12px;margin-bottom:14px}
+.seg button{flex:1;padding:9px 2px;border-radius:9px;font-size:12px;font-weight:600;color:#64748B}
+.seg5 button{font-size:10.5px;padding:9px 0}
+.seg button.on{background:#fff;color:#0369A1;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+.field{margin-bottom:14px;position:relative;flex:1;min-width:0}
+label.lbl{display:block;font-size:12px;font-weight:700;color:#475569;margin-bottom:7px;letter-spacing:-.005em}
+.inp{width:100%;background:#fff;border:1.5px solid #E2E8F0;border-radius:11px;padding:12px 13px;font-size:16px;color:#0F172A;transition:border-color .12s}
+input[type="date"].inp{min-height:46px;line-height:1.3;-webkit-appearance:none;appearance:none;color:#0F172A}
+input[type="date"].inp:invalid,input[type="date"].inp:not(:focus):in-range{color:#0F172A}
+input[type="date"].inp::-webkit-date-and-time-value{text-align:left}
+input[type="date"].inp:not([value]),input[type="date"].inp[value=""]{color:#94A3B8}
+select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6559' stroke-width='3'><path d='m6 9 6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.row2{display:flex;gap:10px}.row3{display:flex;gap:8px}
+.divider{height:1px;background:#E2E8F0;margin:4px 0 16px}
+.sect{background:#fff;border-radius:13px;margin-bottom:12px;overflow:hidden;border:1px solid #E2E8F0}
+.sect-head{width:100%;padding:13px 14px;display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:700}
+.sect-head .ic{transition:transform .15s}
+.sect.open .sect-head .ic{transform:rotate(90deg)}
+.sect-body{padding:14px;border-top:1px solid #EDF2F7}
+.optgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.opt{background:#fff;border:1.5px solid #E2E8F0;color:#475569;padding:10px 8px;border-radius:10px;font-size:12.5px;font-weight:600;line-height:1.3}
+.opt.on{border-color:#0369A1;color:#0369A1;background:#EFF6FF}
+.opt.on.warn{border-color:#DC2626;color:#DC2626;background:#FEE2E2}
+.opt small{font-size:10px;opacity:.7;display:block}
+
+.rxhead{display:grid;grid-template-columns:30px 1fr 1fr 1fr 1fr;gap:6px;font-size:10px;font-weight:700;color:#64748B;text-align:center;margin-bottom:5px;letter-spacing:.04em}
+.rxrow-in{display:grid;grid-template-columns:30px 1fr 1fr 1fr 1fr;gap:6px;margin-bottom:7px;align-items:center}
+.rxlbl{font-size:12px;font-weight:800;color:#0369A1}
+.rxin{width:100%;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;padding:12px 2px;font-size:15px;text-align:center;
+ color:#0F172A;font-weight:700;font-variant-numeric:tabular-nums;transition:border-color .12s,background .12s}
+.rxin.ph{color:#94A3B8;font-weight:500;background:#fff}
+.rxin:active{background:#EFF6FF;border-color:#93C5FD}
+.rxprismbtn{flex:0 0 64px;padding:11px 4px;text-align:center;font-weight:700;color:#0F172A;font-variant-numeric:tabular-nums}
+.rxprismbtn .ph{color:#94A3B8;font-weight:500}
+
+.wp-overlay{z-index:200}
+.wp-sheet{padding:14px 18px 26px;max-width:400px;border-radius:22px;animation:wpslideup .12s ease-out}
+@keyframes wpslideup{from{transform:translateY(16px);opacity:.4}to{transform:translateY(0);opacity:1}}
+.wp-title{font-size:15px;font-weight:800;text-align:center;margin-bottom:6px;letter-spacing:-.01em}
+.wp-hint{font-size:11.5px;color:#64748B;text-align:center;margin-bottom:12px}
+.dualwheel{display:flex;align-items:center;gap:4px}
+.dualwheel .wheelbox{flex:1}
+.dualwheel-sep{font-size:22px;font-weight:800;color:#94A3B8;padding-top:2px}
+.wp-eye{font-weight:600;color:#64748B;font-size:12.5px}
+.wheelbox{position:relative;height:180px;overflow:hidden;border-radius:15px;background:#F8FAFC;border:1px solid #EEF2F7}
+.track{position:absolute;inset:0;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.track::-webkit-scrollbar{display:none}
+.wpad{height:72px}
+.witem{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;
+ font-size:19px;font-variant-numeric:tabular-nums;color:#94A3B8;font-weight:600}
+.witem.wzero{color:#0369A1}
+.witem.wcenter{color:#0F172A;font-weight:800;font-size:24px}
+.selbar{position:absolute;top:72px;left:10px;right:10px;height:36px;background:#DBEAFE;border-radius:10px;
+ border-top:2px solid #3B82F6;border-bottom:2px solid #3B82F6;pointer-events:none}
+.fadetop,.fadebot{position:absolute;left:0;right:0;height:56px;pointer-events:none;z-index:2}
+.fadetop{top:0;background:linear-gradient(#F8FAFCf5,#F8FAFC00)}
+.fadebot{bottom:0;background:linear-gradient(#F8FAFC00,#F8FAFCf5)}
+.wp-actions{display:flex;gap:8px;margin-top:16px}
+.wp-clear{flex:1;background:#F1F5F9;color:#64748B;padding:13px;border-radius:12px;font-weight:700;font-size:14px}
+.wp-done{flex:2;background:#0369A1;color:#fff;padding:13px;border-radius:12px;font-weight:700;font-size:14px;
+ display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px -4px rgba(3,105,161,.4)}
+.rxtbl{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:14px;border:1px solid #E2E8F0}
+.rxt-h{display:grid;grid-template-columns:50px 1fr 1fr 1fr 1fr 1.3fr;font-size:9.5px;font-weight:700;color:#64748B;text-align:center;letter-spacing:.05em;padding-bottom:6px;border-bottom:1px solid #EDF2F7}
+.rxt-r{display:grid;grid-template-columns:50px 1fr 1fr 1fr 1fr 1.3fr;font-size:12px;text-align:center;padding:8px 0;border-bottom:1px solid #F8FAFC;align-items:center}
+.rxt-e{text-align:left;font-size:11px;color:#0369A1;font-weight:700}
+
+.dblock{background:#fff;border-radius:12px;padding:4px 14px;border:1px solid #E2E8F0;margin-bottom:14px}
+.drow{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid #F1F5F9;font-size:13px}
+.drow:last-child{border-bottom:none}
+.dlbl{color:#64748B;flex-shrink:0}
+.dval{font-weight:600;text-align:right}
+.notesbox{background:#FFFBEB;border:1px solid #FDE68A;border-radius:11px;padding:12px 14px;font-size:13px;color:#92400E;margin-bottom:14px;line-height:1.5}
+.stagepick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+
+.mbar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:12px 10px;margin-bottom:14px}
+.mprev{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#EEF2F7;border-radius:11px;padding:12px 10px;margin-bottom:13px}
+.mlbl{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:.05em;text-align:center}
+.mval{font-size:14px;font-weight:700;text-align:center;margin-top:3px;font-variant-numeric:tabular-nums}
+.pos{color:#16A34A}.neg{color:#DC2626}
+
+.paidtog{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:500;padding:4px 0 14px;cursor:pointer}
+.paidtog input{width:18px;height:18px;accent-color:#0369A1}
+.btn-main{width:100%;background:#0369A1;color:#fff;padding:16px;border-radius:14px;font-size:16px;font-weight:700;
+ display:flex;align-items:center;justify-content:center;gap:7px;margin-top:6px;letter-spacing:-.01em;
+ box-shadow:0 4px 14px -4px rgba(3,105,161,.4);transition:transform .1s,box-shadow .1s}
+.btn-main:active{transform:scale(.98);box-shadow:0 2px 8px -3px rgba(3,105,161,.4)}
+.btn-main.alt{background:#FEF3C7;color:#B45309;box-shadow:none}
+.btn-main.dis{opacity:.4;pointer-events:none;box-shadow:none}
+.btn-del{background:#F1F5F9;color:#94A3B8;padding:16px 19px;border-radius:14px;transition:transform .1s}
+.btn-del:active{transform:scale(.96)}
+.hint{font-size:11.5px;color:#94A3B8;text-align:center;margin-top:9px;line-height:1.4}
+.hint-btn{width:100%;font-size:12px;color:#94A3B8;text-align:center;margin-top:12px;padding:4px;text-decoration:underline;text-underline-offset:2px}
+.err{font-size:11.5px;color:#DC2626;margin:6px 0 0;font-weight:600}
+.chosen{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:11px;padding:10px 13px;font-size:12px;color:#0369A1;margin-bottom:14px;display:flex;align-items:center;gap:6px;font-weight:500}
+.contactcard{background:#fff;border:1px solid #E2E8F0;border-radius:13px;padding:13px 15px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px;
+ box-shadow:0 1px 2px rgba(15,23,42,.03)}
+.contactrow{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#334155;text-decoration:none;font-weight:500}
+a.contactrow{color:#0369A1;font-weight:600}
+
+.kpigrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kpigrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:12px 13px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+.kpi.big{grid-column:1/-1}
+.kpi-l{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.kpi-v{font-weight:800;margin-top:5px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-size:18px}
+.kpi.big .kpi-v{font-size:27px}
+.kpi-d{font-size:10.5px;font-weight:700;margin-top:4px;display:flex;align-items:center;gap:2px}
+
+.banner{display:flex;justify-content:space-between;align-items:center;background:#FEF3C7;border:1px solid #FDE68A;
+ border-radius:13px;padding:13px 15px;font-size:13px;color:#92400E;font-weight:700;margin-bottom:12px}
+.infobox{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#0369A1;margin-bottom:12px;line-height:1.55;font-weight:500}
+.warnbox{background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#92400E;margin-bottom:12px;line-height:1.55;font-weight:500}
+.repcard{background:#fff;border:1px solid #E2E8F0;border-radius:15px;padding:15px 16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+.rep-t{font-size:13.5px;font-weight:800;margin-bottom:13px;letter-spacing:-.01em}
+.rep-e{font-size:12.5px;color:#94A3B8;padding:6px 0}
+.barrow{margin-bottom:11px}
+.bartop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:5px}
+.barlbl{font-size:12.5px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.barval{font-size:12.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.barsub{font-size:11px;font-weight:500;color:#94A3B8}
+.bartrack{height:7px;background:#EEF2F7;border-radius:4px;overflow:hidden}
+.barfill{height:100%;border-radius:4px}
+
+.tblhead{display:flex;gap:6px;font-size:9.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.04em;padding-bottom:7px;border-bottom:1px solid #EDF2F7}
+.tblrow{display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #F1F5F9;cursor:pointer}
+.tblrow:last-child{border-bottom:none}
+.tbl-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbl-sub{font-size:11px;color:#94A3B8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbl-n{width:52px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums;flex-shrink:0}
+
+.agerow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.agecard{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:11px 6px;text-align:center}
+.age-v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.age-l{font-size:10px;color:#64748B;margin-top:3px}
+.sectitle{font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px}
+.stmtrow{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E2E8F0;border-radius:11px;padding:11px 12px;margin-bottom:7px}
+.stmt-t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stmt-s{font-size:11.5px;color:#94A3B8;margin-top:2px}
+.stmt-a{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.stmt-p{background:#DBEAFE;color:#0369A1;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stmt-p.off{background:#F1F5F9;color:#94A3B8}
+.exprow{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:12px 13px;margin-bottom:8px}
+.exp-d{font-size:13.5px;font-weight:600}
+.exp-m{font-size:11.5px;color:#64748B;margin-top:2px}
+.exp-n{font-size:11.5px;color:#94A3B8;margin-top:3px;font-style:italic}
+.exp-a{font-size:14.5px;font-weight:700;color:#B45309;font-variant-numeric:tabular-nums}
+.flex1{flex:1;min-width:0}
+.rt{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+
+
+</style>
+</head>
+<body>
+<div id="app" class="wrap"></div>
+<div id="modal" class="hide"></div>
+<input type="file" id="restoreFile" accept="application/json,.json" style="display:none">
+<script>
+/* ============ ICONS ============ */
+const IP={
+plus:'<path d="M5 12h14M12 5v14"/>',x:'<path d="M18 6 6 18M6 6l12 12"/>',check:'<path d="M20 6 9 17l-5-5"/>',
+chev:'<path d="m9 18 6-6-6-6"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
+upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/>',
+trash:'<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>',
+wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+truck:'<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+building:'<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>',
+alert:'<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+zap:'<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+flask:'<path d="M10 2v7.31M14 9.3V1.99M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0M5.52 16h12.96"/>',
+pkg:'<path d="m16 16 2 2 4-4"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m7.5 4.27 9 5.15"/>',
+clip:'<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+chart:'<path d="M3 3v18h18M7 16v-4M12 16V8M17 16v-6"/>',
+receipt:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+pencil:'<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+checks:'<path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/>',
+phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/>',
+mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 5L2 7"/>',
+timer:'<path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/>',
+up:'<path d="m5 12 7-7 7 7M12 19V5"/>',down:'<path d="M12 5v14M19 12l-7 7-7-7"/>',
+gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'
+};
+const ic=(n,s)=>'<svg class="ic" width="'+(s||16)+'" height="'+(s||16)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(IP[n]||'')+'</svg>';
+
+/* ============ STORAGE (layered: IndexedDB -> localStorage -> memory) ============ */
+const Store=(function(){
+  let mode="memory", db=null, mem={};
+  const KEY="meridian_data";
+  async function initIDB(){
+    return new Promise(res=>{
+      let req;
+      try{ req=indexedDB.open("meridian_db",1); }catch(e){ return res(false); }
+      req.onupgradeneeded=()=>{const d=req.result; if(!d.objectStoreNames.contains("kv")) d.createObjectStore("kv");};
+      req.onsuccess=()=>{db=req.result;res(true);};
+      req.onerror=()=>res(false);
+      setTimeout(()=>res(!!db),1500);
+    });
+  }
+  function lsOK(){ try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; }catch(e){ return false; } }
+  async function init(){
+    if(await initIDB()){
+      // verify a write actually works (Chrome file:// blocks it)
+      try{
+        await new Promise((res,rej)=>{const tx=db.transaction("kv","readwrite");
+          tx.objectStore("kv").put(1,"__t"); tx.oncomplete=res; tx.onerror=()=>rej(); tx.onabort=()=>rej();});
+        mode="idb"; return mode;
+      }catch(e){}
+    }
+    if(lsOK()){ mode="local"; return mode; }
+    mode="memory"; return mode;
+  }
+  async function load(){
+    if(mode==="idb"){
+      return new Promise(res=>{const tx=db.transaction("kv","readonly");
+        const r=tx.objectStore("kv").get(KEY); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null);});
+    }
+    if(mode==="local"){ try{ const v=localStorage.getItem(KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
+    return mem[KEY]||null;
+  }
+  async function save(data){
+    if(mode==="idb"){
+      return new Promise(res=>{const tx=db.transaction("kv","readwrite");
+        tx.objectStore("kv").put(data,KEY); tx.oncomplete=()=>res(true); tx.onerror=()=>res(false);});
+    }
+    if(mode==="local"){ try{ localStorage.setItem(KEY,JSON.stringify(data)); return true; }catch(e){ return false; } }
+    mem[KEY]=data; return true;
+  }
+  return {init,load,save,getMode:()=>mode};
+})();
+
+/* ============ PURE-JS XLSX WRITER (no libraries) ============ */
+const XL=(function(){
+  const tbl=(function(){const t=new Uint32Array(256);
+    for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c>>>0;}return t;})();
+  function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=tbl[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+  const enc=s=>new TextEncoder().encode(s);
+  function colName(n){let s="";n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  function sheetXml(rows){
+    let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+    rows.forEach((row,ri)=>{
+      x+='<row r="'+(ri+1)+'">';
+      row.forEach((cell,ci)=>{
+        const ref=colName(ci)+(ri+1);
+        if(cell===null||cell===undefined||cell===""){ return; }
+        if(typeof cell==="number" && isFinite(cell)){ x+='<c r="'+ref+'"><v>'+(Math.round(cell*1e6)/1e6)+'</v></c>'; }
+        else { x+='<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+esc(cell)+'</t></is></c>'; }
+      });
+      x+='</row>';
+    });
+    return x+'</sheetData></worksheet>';
+  }
+  function zip(files){
+    const parts=[],central=[];let offset=0;
+    files.forEach(f=>{
+      const nameB=enc(f.name), data=f.data, crc=crc32(data);
+      const lh=new Uint8Array(30+nameB.length), dv=new DataView(lh.buffer);
+      dv.setUint32(0,0x04034b50,true); dv.setUint16(4,20,true); dv.setUint16(6,0x800,true);
+      dv.setUint16(8,0,true); dv.setUint16(10,0,true); dv.setUint16(12,0x21,true);
+      dv.setUint32(14,crc,true); dv.setUint32(18,data.length,true); dv.setUint32(22,data.length,true);
+      dv.setUint16(26,nameB.length,true); dv.setUint16(28,0,true);
+      lh.set(nameB,30);
+      parts.push(lh,data);
+      const cd=new Uint8Array(46+nameB.length), cv=new DataView(cd.buffer);
+      cv.setUint32(0,0x02014b50,true); cv.setUint16(4,20,true); cv.setUint16(6,20,true);
+      cv.setUint16(8,0x800,true); cv.setUint16(10,0,true); cv.setUint16(12,0,true); cv.setUint16(14,0x21,true);
+      cv.setUint32(16,crc,true); cv.setUint32(20,data.length,true); cv.setUint32(24,data.length,true);
+      cv.setUint16(28,nameB.length,true); cv.setUint16(30,0,true); cv.setUint16(32,0,true);
+      cv.setUint16(34,0,true); cv.setUint16(36,0,true); cv.setUint32(38,0,true); cv.setUint32(42,offset,true);
+      cd.set(nameB,46);
+      central.push(cd);
+      offset+=lh.length+data.length;
+    });
+    let cdSize=0; central.forEach(c=>cdSize+=c.length);
+    const eocd=new Uint8Array(22), ev=new DataView(eocd.buffer);
+    ev.setUint32(0,0x06054b50,true); ev.setUint16(4,0,true); ev.setUint16(6,0,true);
+    ev.setUint16(8,files.length,true); ev.setUint16(10,files.length,true);
+    ev.setUint32(12,cdSize,true); ev.setUint32(16,offset,true); ev.setUint16(20,0,true);
+    const all=parts.concat(central,[eocd]);
+    let total=0; all.forEach(a=>total+=a.length);
+    const out=new Uint8Array(total); let p=0;
+    all.forEach(a=>{out.set(a,p);p+=a.length;});
+    return out;
+  }
+  // sheets: [{name, rows:[[..],[..]]}]
+  function build(sheets){
+    const files=[];
+    let ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      +'<Default Extension="xml" ContentType="application/xml"/>'
+      +'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>';
+    let wbSheets="", wbRels="";
+    sheets.forEach((s,i)=>{
+      const n=i+1;
+      ct+='<Override PartName="/xl/worksheets/sheet'+n+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+      wbSheets+='<sheet name="'+esc(s.name.slice(0,31))+'" sheetId="'+n+'" r:id="rId'+n+'"/>';
+      wbRels+='<Relationship Id="rId'+n+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+n+'.xml"/>';
+      files.push({name:"xl/worksheets/sheet"+n+".xml",data:enc(sheetXml(s.rows))});
+    });
+    ct+='</Types>';
+    files.unshift({name:"[Content_Types].xml",data:enc(ct)});
+    files.push({name:"_rels/.rels",data:enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+      +'</Relationships>')});
+    files.push({name:"xl/workbook.xml",data:enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+      +'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+      +wbSheets+'</sheets></workbook>')});
+    files.push({name:"xl/_rels/workbook.xml.rels",data:enc('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+wbRels+'</Relationships>')});
+    return zip(files);
+  }
+  // objects -> rows
+  function objRows(arr){
+    if(!arr.length) return [["No data"]];
+    const heads=Object.keys(arr[0]);
+    return [heads].concat(arr.map(o=>heads.map(h=>o[h])));
+  }
+  return {build,objRows};
+})();
+
+function downloadBlob(data,filename,mime){
+  const blob=new Blob([data],{type:mime||"application/octet-stream"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
+}
+
+/* ============ REFERENCE DATA ============ */
+const STAGES={
+ received:{label:"Order received",short:"Received",color:"#64748B",bg:"#F1F5F9"},
+ lab:{label:"Awaiting stock / lab",short:"At lab",color:"#B45309",bg:"#FEF3C7"},
+ ready:{label:"Ready to dispatch",short:"Ready",color:"#0369A1",bg:"#DBEAFE"},
+ out:{label:"Out for delivery",short:"Out",color:"#7C3AED",bg:"#EDE9FE"},
+ delivered:{label:"Delivered",short:"Delivered",color:"#15803D",bg:"#DCFCE7"}};
+const STAGE_ORDER=["received","lab","ready","out","delivered"];
+const LENS_TYPES={sv:"Single vision",progressive:"Progressive (PAL)",bifocal:"Bifocal",trifocal:"Trifocal",office:"Office / computer"};
+const PAL_DESIGNS=["Standard","Premium","Freeform / digital"];
+const CORRIDORS=["11mm","13mm","14mm","15mm","17mm"];
+const SEG_TYPES=["FT-28","FT-35","Executive","Round 22","Round 24","Kryptok"];
+const MATERIALS=[{k:"cr39",label:"CR-39",idx:"1.498"},{k:"trivex",label:"Trivex",idx:"1.530"},
+ {k:"poly",label:"Polycarbonate",idx:"1.586"},{k:"mid",label:"Mid-index",idx:"1.600"},
+ {k:"hi167",label:"High-index",idx:"1.670"},{k:"hi174",label:"High-index",idx:"1.740"},
+ {k:"glass",label:"Glass (crown)",idx:"1.523"}];
+const matLabel=k=>{const m=MATERIALS.find(x=>x.k===k);return m?(m.label+" "+m.idx):"";};
+const COATINGS=["AR standard","AR premium","Hard coat","UV400","Blue filter","Mirror","Oleophobic"];
+const PHOTO_OPTS=["None","Photochromic grey","Photochromic brown","Photochromic graphite green","Polarised grey","Polarised brown"];
+const TINT_TYPES=["None","Solid","Gradient"];
+const TINT_COLORS=["Grey","Brown","Green","Blue","Rose","Yellow"];
+const FRAME_TYPES=["Full rim","Supra / nylon","Rimless drill-mount"];
+const FRAME_SUPPLY=["Frame enclosed","Frame to follow","Patient's own frame","Uncut — no frame"];
+const EDGING=["Uncut lenses","Edged & fitted"];
+const DIAMETERS=["65mm","70mm","75mm","80mm"];
+const PRISM_BASE=["—","Base Up","Base Down","Base In","Base Out"];
+
+/* ---- Rx wheel picker ranges ---- */
+function rangeStep(max,min,step){const v=[];for(let i=Math.round(max*100);i>=Math.round(min*100);i-=Math.round(step*100))v.push(i/100);return v;}
+const WHEEL_CFG={
+  sph:{label:"SPH", vals:rangeStep(20,-20,0.25), fmt:dpt, zero:0},
+  cyl:{label:"CYL", vals:rangeStep(10,-10,0.25), fmt:dpt, zero:0},
+  axis:{label:"AXIS", vals:rangeStep(180,0,1), fmt:v=>String(v).padStart(3,"0"), zero:0},
+  add:{label:"ADD", vals:rangeStep(4,0,0.25), fmt:v=>v===0?"0.00":dpt(v), zero:0},
+  prism:{label:"PRISM", vals:rangeStep(10,0,0.5), fmt:v=>v.toFixed(1), zero:0},
+};
+const READER_POWERS=["+1.00","+1.25","+1.50","+1.75","+2.00","+2.25","+2.50","+2.75","+3.00","+3.25","+3.50"];
+const EXPENSE_CATS=["Stock purchase","Lab / surfacing charges","Delivery & transport","Rent & utilities","Salaries & wages",
+ "Equipment","Marketing","Insurance","GST & taxes paid","Other"];
+const TERMS_OPTS=["0","7","15","30","45","60"];
+const GST_RATES=["0","5","12","18","28"];
+const STATES=["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana",
+ "Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
+ "Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand",
+ "West Bengal","Andaman & Nicobar Islands","Chandigarh","Dadra & Nagar Haveli and Daman & Diu","Delhi",
+ "Jammu & Kashmir","Ladakh","Lakshadweep","Puducherry"];
+const PERIODS=[{k:"m0",label:"This month"},{k:"m1",label:"Last month"},{k:"m3",label:"Last 3 mo"},
+ {k:"fy",label:"This FY"},{k:"fy1",label:"Last FY"},{k:"all",label:"All time"}];
+
+/* ============ HELPERS ============ */
+const money=n=>"₹"+(Number(n)||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0=n=>"₹"+Math.round(Number(n)||0).toLocaleString("en-IN");
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const fmtDate=iso=>{const d=new Date(iso);return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short"})+" · "+d.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});};
+const fmtDay=iso=>iso?new Date(iso).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"2-digit"}):"";
+const monthKey=iso=>{const d=new Date(iso);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");};
+const monthLabel=k=>{const p=k.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleDateString("en-IN",{month:"short",year:"2-digit"});};
+const daysAgo=iso=>Math.floor((Date.now()-new Date(iso).getTime())/86400000);
+const daysBetween=(a,b)=>Math.max(0,Math.round((new Date(b)-new Date(a))/86400000));
+const pct=(a,b)=>b?(a/b*100):0;
+function dpt(v){if(v===""||v==null)return"";const n=Number(v);if(isNaN(n))return String(v);return (n>0?"+":n<0?"-":"")+Math.abs(n).toFixed(2);}
+function axisFmt(v){if(v===""||v==null)return"";const n=parseInt(v,10);if(isNaN(n))return String(v);return String(n).padStart(3,"0");}
+function eyeStr(e){if(!e)return"";const p=[];
+ if(e.sph!==""&&e.sph!=null)p.push(dpt(e.sph));
+ if(e.cyl!==""&&e.cyl!=null)p.push("/ "+dpt(e.cyl));
+ if(e.axis!==""&&e.axis!=null)p.push("x "+axisFmt(e.axis));return p.join(" ");}
+function rxSummary(o){if(o.type!=="rx")return"";
+ const r=eyeStr(o.od),l=eyeStr(o.os);let s="";
+ if(r)s+="R "+r; if(l)s+=(s?"   ":"")+"L "+l;
+ const add=(o.od&&o.od.add)||(o.os&&o.os.add);
+ if(add)s+=(s?"   ":"")+"Add "+dpt(add);return s;}
+const emptyEye=()=>({sph:"",cyl:"",axis:"",add:"",prism:"",base:"—"});
+const emptyPractice=()=>({name:"",contact:"",phone:"",email:"",gstin:"",addr1:"",addr2:"",city:"",district:"",
+ state:"",pin:"",area:"",terms:"30",notes:""});
+const emptyBiz=()=>({name:"",gstin:"",state:"",gst:"12",hsnLens:"9001",hsnFrame:"9003",hsnReader:"9004"});
+
+/* ---- money maths (GST-aware) ---- */
+const oQty=o=>Number(o.qty)||0;
+const oTaxable=o=>oQty(o)*(Number(o.price)||0);          // value excl GST
+const oRate=o=>{const r=Number(o.gstRate);return isFinite(r)?r:0;};
+const oGst=o=>oTaxable(o)*oRate(o)/100;                  // tax amount
+const oInvoice=o=>oTaxable(o)+oGst(o);                   // what the shop owes
+const orderRevenue=o=>oTaxable(o);                       // P&L revenue, excl GST
+const orderReceivable=o=>oInvoice(o);                    // billed / outstanding
+const orderCost=o=>oQty(o)*(Number(o.cost)||0);
+const orderProfit=o=>oTaxable(o)-orderCost(o);
+// intra-state -> CGST+SGST, inter-state -> IGST
+const isInterState=o=>{const bs=(ST.biz&&ST.biz.state)||"",cs=(PM[o.practice]&&PM[o.practice].state)||"";
+ if(!bs||!cs)return false; return bs!==cs;};
+
+const typeLabelOf=o=>o.type==="rx"?(LENS_TYPES[o.lensType]||"Rx lenses"):o.type==="readers"?"Ready readers":"Frames / accessories";
+const addrLine=p=>[p.addr1,p.addr2,p.city,p.pin].filter(Boolean).join(", ");
+const geoLine=p=>[p.city,p.district,p.state].filter(Boolean).join(" · ");
+
+/* ---- periods (Indian FY: 1 Apr – 31 Mar) ---- */
+function fyStart(d){const y=d.getFullYear();return d.getMonth()>=3?y:y-1;}
+function periodRange(k){const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+ if(k==="m0")return[new Date(y,m,1),new Date(y,m+1,1)];
+ if(k==="m1")return[new Date(y,m-1,1),new Date(y,m,1)];
+ if(k==="m3")return[new Date(y,m-2,1),new Date(y,m+1,1)];
+ if(k==="fy"){const s=fyStart(n);return[new Date(s,3,1),new Date(s+1,3,1)];}
+ if(k==="fy1"){const s=fyStart(n)-1;return[new Date(s,3,1),new Date(s+1,3,1)];}
+ return[new Date(1970,0,1),new Date(y+50,0,1)];}
+function prevRange(k){const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+ if(k==="m0")return[new Date(y,m-1,1),new Date(y,m,1)];
+ if(k==="m1")return[new Date(y,m-2,1),new Date(y,m-1,1)];
+ if(k==="m3")return[new Date(y,m-5,1),new Date(y,m-2,1)];
+ if(k==="fy"){const s=fyStart(n)-1;return[new Date(s,3,1),new Date(s+1,3,1)];}
+ if(k==="fy1"){const s=fyStart(n)-2;return[new Date(s,3,1),new Date(s+1,3,1)];}
+ return null;}
+function fyLabel(k){const n=new Date();let s=fyStart(n);if(k==="fy1")s-=1;
+ return "FY "+s+"-"+String((s+1)%100).padStart(2,"0");}
+const inRange=(iso,r)=>{if(!iso||!r)return false;const t=new Date(iso).getTime();return t>=r[0].getTime()&&t<r[1].getTime();};
+const rangeDays=r=>Math.max(1,Math.round((r[1]-r[0])/86400000));
+function isPastTerms(o,terms){if(o.paid)return false;const t=Number(terms);if(isNaN(t))return false;return daysAgo(o.createdAt)>t;}
+
+/* ============ STATE ============ */
+const ST={
+  orders:[], practices:[], expenses:[], biz:emptyBiz(),
+  nav:"orders", filter:"all", query:"", period:"m0", repView:"overview", sortBy:"value",
+  pDist:"All", pQuery:"", ready:false, storeMode:"memory"
+};
+const pMap=()=>{const m={};ST.practices.forEach(p=>m[p.name]=p);return m;};
+let PM={};
+const pOf=n=>PM[n]||emptyPractice();
+const cityOf=n=>(PM[n]&&PM[n].city)||"Unassigned";
+const districtOf=n=>(PM[n]&&PM[n].district)||"Unassigned";
+const stateOf=n=>(PM[n]&&PM[n].state)||"Unassigned";
+const areaOf=n=>(PM[n]&&PM[n].area)||"Unassigned";
+
+async function persist(){
+  PM=pMap();
+  await Store.save({orders:ST.orders,practices:ST.practices,expenses:ST.expenses,biz:ST.biz,v:2});
+}
+
+/* ============ SHARED RENDER BITS ============ */
+function bar(label,value,max,sub,color,fmt){
+  const p=max>0?Math.max(2,(value/max)*100):0;
+  const f=fmt||money0;
+  return '<div class="barrow"><div class="bartop"><span class="barlbl">'+esc(label)+'</span>'
+    +'<span class="barval">'+f(value)+(sub?' <span class="barsub">· '+esc(sub)+'</span>':'')+'</span></div>'
+    +'<div class="bartrack"><div class="barfill" style="width:'+p+'%;background:'+(color||"#0369A1")+'"></div></div></div>';
+}
+function kpi(label,value,cls,big,delta){
+  let d="";
+  if(delta!==null&&delta!==undefined&&isFinite(delta))
+    d='<div class="kpi-d '+(delta>=0?"pos":"neg")+'">'+ic(delta>=0?"up":"down",11)+Math.abs(delta).toFixed(0)+'% vs prev</div>';
+  return '<div class="kpi'+(big?" big":"")+'"><div class="kpi-l">'+esc(label)+'</div>'
+    +'<div class="kpi-v '+(cls||"")+'">'+value+'</div>'+d+'</div>';
+}
+function groupCard(title,rows,color,fmt,empty){
+  const max=Math.max(1,...rows.map(r=>r.v));
+  return '<div class="repcard"><div class="rep-t">'+esc(title)+'</div>'
+    +(rows.length?rows.map(r=>bar(r.k,r.v,max,r.sub,color,fmt)).join(""):'<div class="rep-e">'+(empty||"No data in this period.")+'</div>')
+    +'</div>';
+}
+function periodChips(){
+  return '<div class="chips scrollx" style="margin-bottom:12px">'+PERIODS.map(p=>{
+    const lbl=(p.k==="fy"||p.k==="fy1")?fyLabel(p.k):p.label;
+    return '<button class="chip'+(ST.period===p.k?" on":"")+'" data-act="period" data-v="'+p.k+'">'+lbl+'</button>';}).join("")+'</div>';
+}
+
+/* ============ ORDERS VIEW ============ */
+function viewOrders(){
+  const o=ST.orders;
+  const active=o.filter(x=>!x.cancelled);
+  const stats={
+    lab:active.filter(x=>x.stage==="lab"||x.stage==="received").length,
+    ready:active.filter(x=>x.stage==="ready").length,
+    out:active.filter(x=>x.stage==="out").length,
+    owed:active.filter(x=>!x.paid).reduce((s,x)=>s+orderReceivable(x),0)
+  };
+  let list=o;
+  const f=ST.filter;
+  if(f==="unpaid")list=list.filter(x=>!x.paid&&!x.cancelled);
+  else if(f==="urgent")list=list.filter(x=>x.priority==="urgent"&&x.stage!=="delivered"&&!x.cancelled);
+  else if(f==="labgrp")list=list.filter(x=>(x.stage==="lab"||x.stage==="received")&&!x.cancelled);
+  else if(f==="cancelled")list=list.filter(x=>x.cancelled);
+  else if(f!=="all")list=list.filter(x=>x.stage===f&&!x.cancelled);
+  if(ST.query.trim()){const q=ST.query.toLowerCase();
+    list=list.filter(x=>(x.practice||"").toLowerCase().includes(q)||(x.patientRef||"").toLowerCase().includes(q)
+      ||(x.jobRef||"").toLowerCase().includes(q)||cityOf(x.practice).toLowerCase().includes(q));}
+
+  const pipes=[["labgrp",stats.lab,"At lab / awaiting",STAGES.lab.color,"flask"],
+    ["ready",stats.ready,"Ready to dispatch",STAGES.ready.color,"pkg"],
+    ["out",stats.out,"Out for delivery",STAGES.out.color,"truck"]];
+
+  return '<div class="owed"><div><div class="owed-l">Outstanding (incl GST)</div><div class="owed-v">'+money(stats.owed)+'</div></div>'
+    +'<span style="opacity:.32">'+ic("wallet",30)+'</span></div>'
+    +'<div class="piperow">'+pipes.map(p=>
+      '<button class="pipe'+(f===p[0]?" on":"")+'" style="color:'+p[3]+'" data-act="pipe" data-v="'+p[0]+'">'
+      +ic(p[4],18)+'<span class="pipe-n">'+p[1]+'</span><span class="pipe-l">'+p[2]+'</span></button>').join("")+'</div>'
+    +'<div class="pad">'
+    +'<div class="searchwrap">'+ic("search",15)+'<input id="q" placeholder="Shop, city, patient or job no." value="'+esc(ST.query)+'">'
+    +(ST.query?'<button data-act="clearq">'+ic("x",15)+'</button>':'')+'</div>'
+    +'<div class="chips" style="margin-bottom:12px">'
+    +[["all","All"],["urgent","Urgent"],["unpaid","Unpaid"],["delivered","Delivered"],["cancelled","Cancelled"]].map(x=>
+      '<button class="chip'+(f===x[0]?" on":"")+'" data-act="filter" data-v="'+x[0]+'">'+x[1]+'</button>').join("")
+    +'</div>'
+    +'<div class="list">'
+    +(list.length?list.map(jobCard).join("")
+      :'<div class="empty">'+ic("alert",28)+'<p>'+(o.length?"No orders match this view.":"No orders yet. Tap + to book your first one.")+'</p></div>')
+    +'</div></div>';
+}
+
+function jobCard(o){
+  const st=STAGES[o.stage]||STAGES.received;
+  const next=STAGE_ORDER[STAGE_ORDER.indexOf(o.stage)+1];
+  const label=o.type==="rx"?(LENS_TYPES[o.lensType]||"Rx lenses")
+    :o.type==="readers"?("Readers "+(o.readerPower||"")):(o.description||"Frames / accessories");
+  const city=cityOf(o.practice);
+  const late=o.promised&&o.stage!=="delivered"&&new Date(o.promised)<new Date();
+  const rx=rxSummary(o);
+  const cancelled=!!o.cancelled;
+  return '<div class="card'+(cancelled?" card-cancelled":"")+'"><div class="card-top" data-act="detail" data-id="'+o.id+'">'
+    +'<div class="flex1">'
+    +'<div style="display:flex;align-items:center;gap:5px">'+(o.priority==="urgent"&&!cancelled?'<span style="color:#DC2626">'+ic("zap",13)+'</span>':'')
+    +'<span class="card-name">'+esc(o.practice)+'</span></div>'
+    +(city&&city!=="Unassigned"?'<div class="card-town">'+ic("pin",9)+' '+esc(city)+'</div>':'')
+    +'<div class="card-item">'+esc(label)+(oQty(o)>1?" · ×"+o.qty:"")+'</div>'
+    +(rx?'<div class="rxline num">'+esc(rx)+'</div>':'')
+    +'<div class="card-meta">'+(o.jobRef?'<span class="jobref">'+esc(o.jobRef)+'</span> · ':'')
+    +(o.patientRef?esc(o.patientRef)+' · ':'')+fmtDate(o.createdAt)
+    +(late&&!cancelled?' · <span class="late">LATE</span>':'')+'</div></div>'
+    +'<div class="rt">'
+    +(cancelled?'<span class="badge" style="color:#DC2626;background:#FEE2E2">Cancelled</span>'
+      :'<span class="badge" style="color:'+st.color+';background:'+st.bg+'">'+st.short+'</span>')
+    +'<span class="'+(o.paid?"tag-paid":"tag-unpaid")+'">'+(o.paid?"Paid":"Unpaid")+'</span>'
+    +'<span class="card-total">'+money(orderReceivable(o))+'</span>'
+    +(oRate(o)>0?'<span style="font-size:10px;color:#94A3B8">incl '+oRate(o)+'% GST</span>':'')
+    +'</div></div>'
+    +(cancelled
+      ?'<div class="qbar"><button class="q-det" data-act="detail" data-id="'+o.id+'" style="flex:1">View / Restore '+ic("chev",13)+'</button></div>'
+      :'<div class="qbar">'
+      +(next?'<button style="color:'+STAGES[next].color+'" data-act="stage" data-id="'+o.id+'" data-v="'+next+'">→ '+STAGES[next].short+'</button>'
+            :'<button style="color:#94A3B8" disabled>Complete</button>')
+      +'<button class="'+(o.paid?"q-unpaid":"q-paid")+'" data-act="paid" data-id="'+o.id+'">'+(o.paid?"Mark unpaid":"Mark paid")+'</button>'
+      +'<button class="q-det" data-act="detail" data-id="'+o.id+'">Details '+ic("chev",13)+'</button></div>')
+    +'</div>';
+}
+
+/* ============ CUSTOMERS VIEW ============ */
+function viewPractices(){
+  if(!ST.practices.length)
+    return '<div class="pad"><div class="empty">'+ic("building",28)
+      +'<p>No customers yet. Add one here, or they are created automatically when you book their first order.</p></div>'
+      +'<button class="btn-main" data-act="newpractice">'+ic("plus",16)+' Add customer</button></div>';
+
+  const dists=["All"].concat([...new Set(ST.practices.map(p=>p.district).filter(Boolean))]);
+  let rows=ST.practices.filter(p=>ST.pDist==="All"||p.district===ST.pDist)
+    .filter(p=>!ST.pQuery.trim()||[p.name,p.city,p.district,p.state,p.pin,p.contact,p.gstin].join(" ").toLowerCase().includes(ST.pQuery.toLowerCase()))
+    .map(p=>{
+      const co=ST.orders.filter(o=>o.practice===p.name&&!o.cancelled);
+      const billed=co.reduce((s,o)=>s+orderReceivable(o),0);
+      const paid=co.filter(o=>o.paid).reduce((s,o)=>s+orderReceivable(o),0);
+      const oldest=co.filter(o=>!o.paid).reduce((m,o)=>!m||new Date(o.createdAt)<new Date(m)?o.createdAt:m,null);
+      return Object.assign({},p,{jobs:co.length,billed:billed,paid:paid,owed:billed-paid,oldest:oldest});
+    }).sort((a,b)=>b.owed-a.owed||b.billed-a.billed);
+
+  return '<div class="pad">'
+    +'<div class="searchwrap">'+ic("search",15)+'<input id="pq" placeholder="Name, city, PIN or GSTIN" value="'+esc(ST.pQuery)+'">'
+    +(ST.pQuery?'<button data-act="clearpq">'+ic("x",15)+'</button>':'')+'</div>'
+    +(dists.length>1?'<div class="chips scrollx" style="margin-bottom:12px">'+dists.map(d=>
+      '<button class="chip'+(ST.pDist===d?" on":"")+'" data-act="pdist" data-v="'+esc(d)+'">'+esc(d)+'</button>').join("")+'</div>':'')
+    +'<button class="addbtn" data-act="newpractice">'+ic("plus",15)+' Add customer</button>'
+    +'<div class="list">'+rows.map(p=>
+      '<div class="custcard"><div class="avatar">'+esc(p.name.charAt(0).toUpperCase())+'</div>'
+      +'<div class="flex1" data-act="stmt" data-v="'+esc(p.name)+'">'
+      +'<div class="cust-name">'+esc(p.name)+'</div>'
+      +'<div class="cust-meta">'+(p.city?ic("pin",10)+' '+esc([p.city,p.district].filter(Boolean).join(" · "))+' · ':'')
+      +p.jobs+' order'+(p.jobs!==1?"s":"")+' · '+money0(p.billed)+'</div>'
+      +(p.owed>0?'<div class="cust-owed">'+money(p.owed)+' outstanding'+(p.oldest?" · "+daysAgo(p.oldest)+"d":"")+'</div>':'')
+      +'</div>'
+      +'<button class="iconbtn" data-act="editpractice" data-v="'+esc(p.name)+'">'+ic("pencil",15)+'</button>'
+      +'<span style="color:#CBD5E1" data-act="stmt" data-v="'+esc(p.name)+'">'+ic("chev",16)+'</span></div>').join("")
+    +'</div></div>';
+}
+
+/* ============ REPORTS VIEW ============ */
+function viewReports(){
+  const range=periodRange(ST.period), prange=prevRange(ST.period);
+  const po=ST.orders.filter(o=>inRange(o.createdAt,range)&&!o.cancelled);
+  const pe=ST.expenses.filter(e=>inRange(e.date,range));
+  const revenue=po.reduce((s,o)=>s+orderRevenue(o),0);
+  const gstOut=po.reduce((s,o)=>s+oGst(o),0);
+  const cogs=po.reduce((s,o)=>s+orderCost(o),0);
+  const gross=revenue-cogs;
+  const expTotal=pe.reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const net=gross-expTotal;
+  const cash=ST.orders.filter(o=>o.paid&&o.paidAt&&inRange(o.paidAt,range)&&!o.cancelled).reduce((s,o)=>s+orderReceivable(o),0);
+  const owed=ST.orders.filter(o=>!o.paid&&!o.cancelled).reduce((s,o)=>s+orderReceivable(o),0);
+  const missing=po.filter(o=>!Number(o.cost)).length;
+  const avgJob=po.length?revenue/po.length:0;
+  const prevRev=prange?ST.orders.filter(o=>inRange(o.createdAt,prange)&&!o.cancelled).reduce((s,o)=>s+orderRevenue(o),0):null;
+  const prevN=prange?ST.orders.filter(o=>inRange(o.createdAt,prange)&&!o.cancelled).length:null;
+  const dRev=prevRev?((revenue-prevRev)/prevRev*100):null;
+  const dN=prevN?((po.length-prevN)/prevN*100):null;
+  const dso=revenue?(owed/revenue)*rangeDays(range):0;
+
+  const groupBy=fn=>{const g={};po.forEach(o=>{const k=fn(o)||"—";g[k]=g[k]||{jobs:0,rev:0,cost:0};
+    g[k].jobs++;g[k].rev+=orderRevenue(o);g[k].cost+=orderCost(o);});return g;};
+  const toRows=g=>Object.keys(g).map(k=>({k:k,v:g[k].rev,
+    sub:g[k].jobs+" order"+(g[k].jobs!==1?"s":"")+(g[k].rev?" · "+pct(g[k].rev-g[k].cost,g[k].rev).toFixed(0)+"%":"")}))
+    .sort((a,b)=>b.v-a.v);
+
+  let body="";
+  const seg='<div class="seg seg5">'+[["overview","Overview"],["customers","Customers"],["products","Products"],
+    ["service","Service"],["gst","GST"]]
+    .map(x=>'<button class="'+(ST.repView===x[0]?"on":"")+'" data-act="repview" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
+
+  if(ST.repView==="overview"){
+    const mm={};
+    ST.orders.forEach(o=>{const k=monthKey(o.createdAt);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].rev+=orderRevenue(o);mm[k].cost+=orderCost(o);});
+    ST.orders.filter(o=>o.paid&&o.paidAt).forEach(o=>{const k=monthKey(o.paidAt);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].cash+=orderReceivable(o);});
+    ST.expenses.forEach(e=>{const k=monthKey(e.date);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].exp+=Number(e.amount)||0;});
+    const mk=Object.keys(mm).sort().slice(-8);
+    const maxM=Math.max(1,...mk.map(k=>mm[k].rev));
+    body='<div class="kpigrid">'
+      +kpi("Revenue (excl GST)",money0(revenue),"",false,dRev)
+      +kpi("Cash collected",money0(cash),"pos")
+      +kpi("Cost of goods",money0(cogs))
+      +kpi("Gross profit",money0(gross),gross>=0?"pos":"neg")
+      +kpi("Margin",pct(gross,revenue).toFixed(1)+"%",gross>=0?"pos":"neg")
+      +kpi("Expenses",money0(expTotal))
+      +kpi("Net profit",money0(net),net>=0?"pos":"neg",true)
+      +kpi("Orders",po.length,"",false,dN)
+      +kpi("Avg order value",money0(avgJob))
+      +'</div>'
+      +'<div class="banner"><span>Outstanding (all time, incl GST)</span><strong>'+money(owed)+'</strong></div>'
+      +'<div class="infobox">Revenue, profit and margin exclude GST. Outstanding and cash collected are the billed amounts including GST.'
+      +(revenue>0?' Debtor days ≈ <strong>'+dso.toFixed(0)+'</strong>.':'')+'</div>'
+      +(missing>0?'<div class="warnbox">'+missing+' order'+(missing!==1?"s":"")+' in this period ha'+(missing!==1?"ve":"s")
+        +' no cost price, so margin is overstated.</div>':'')
+      +'<div class="repcard"><div class="rep-t">Revenue by month</div>'
+      +(mk.length?mk.map(k=>{const m=mm[k];const gp=m.rev-m.cost-m.exp;
+        return bar(monthLabel(k),m.rev,maxM,"cash "+money0(m.cash)+" · net "+money0(gp),gp>=0?"#0369A1":"#DC2626");}).join("")
+        :'<div class="rep-e">No data yet.</div>')
+      +'</div>';
+  }
+
+  if(ST.repView==="customers"){
+    const ca={};
+    ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=o.practice;ca[k]=ca[k]||{jobs:0,billed:0,rev:0,cost:0,paid:0,oldest:null};
+      const c=ca[k];c.jobs++;c.billed+=orderReceivable(o);c.rev+=orderRevenue(o);c.cost+=orderCost(o);
+      if(o.paid)c.paid+=orderReceivable(o);
+      else if(!c.oldest||new Date(o.createdAt)<new Date(c.oldest))c.oldest=o.createdAt;});
+    let rows=Object.keys(ca).map(k=>Object.assign({name:k},ca[k],{owed:ca[k].billed-ca[k].paid,p:pOf(k)}));
+    rows.sort((a,b)=>ST.sortBy==="owed"?b.owed-a.owed:ST.sortBy==="orders"?b.jobs-a.jobs:b.billed-a.billed);
+    body='<div class="kpigrid">'
+      +kpi("Active customers",new Set(po.map(o=>o.practice)).size)
+      +kpi("Total on account",ST.practices.length)
+      +kpi("Outstanding",money0(owed))
+      +kpi("Debtor days",dso.toFixed(0))
+      +'</div>'
+      +'<div class="chips" style="margin-bottom:10px"><span style="font-size:12px;color:#64748B;align-self:center;margin-right:4px">Sort:</span>'
+      +[["value","Billed"],["owed","Outstanding"],["orders","Orders"]].map(x=>
+        '<button class="chip'+(ST.sortBy===x[0]?" on":"")+'" data-act="sort" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'
+      +'<div class="repcard"><div class="rep-t">Account summary — all time</div>'
+      +'<div class="tblhead"><span class="flex1">Customer</span><span class="tbl-n">Ord</span>'
+      +'<span class="tbl-n">Billed</span><span class="tbl-n">Paid</span><span class="tbl-n">Owed</span></div>'
+      +(rows.length?rows.map(c=>{
+        const col=c.owed>0?(c.oldest&&daysAgo(c.oldest)>60?"#DC2626":"#B45309"):"#94A3B8";
+        return '<div class="tblrow" data-act="stmt" data-v="'+esc(c.name)+'">'
+        +'<div class="flex1"><div class="tbl-name">'+esc(c.name)+'</div>'
+        +'<div class="tbl-sub">'+esc(geoLine(c.p)||"No address")
+        +(c.rev?" · "+pct(c.rev-c.cost,c.rev).toFixed(0)+"% margin":"")+'</div></div>'
+        +'<span class="tbl-n">'+c.jobs+'</span><span class="tbl-n">'+money0(c.billed)+'</span>'
+        +'<span class="tbl-n" style="color:#16A34A">'+money0(c.paid)+'</span>'
+        +'<span class="tbl-n" style="color:'+col+';font-weight:700">'+money0(c.owed)+'</span></div>';}).join("")
+        :'<div class="rep-e">No orders yet.</div>')
+      +'</div>'
+      +groupCard("Revenue by city",toRows(groupBy(o=>cityOf(o.practice))),"#0369A1")
+      +groupCard("Revenue by district",toRows(groupBy(o=>districtOf(o.practice))),"#0EA5E9")
+      +groupCard("Revenue by state",toRows(groupBy(o=>stateOf(o.practice))),"#0369A1")
+      +groupCard("Revenue by delivery route",toRows(groupBy(o=>areaOf(o.practice))),"#334155");
+  }
+
+  if(ST.repView==="products"){
+    const rxJobs=po.filter(o=>o.type==="rx");
+    const coat=COATINGS.map(c=>({k:c,v:rxJobs.filter(o=>(o.coatings||[]).includes(c)).length}))
+      .filter(r=>r.v>0).sort((a,b)=>b.v-a.v)
+      .map(r=>Object.assign({},r,{sub:pct(r.v,rxJobs.length).toFixed(0)+"% of Rx orders"}));
+    const maxC=Math.max(1,...coat.map(c=>c.v));
+    body=groupCard("By lens / product type",toRows(groupBy(o=>typeLabelOf(o))))
+      +groupCard("By material / index",toRows(groupBy(o=>matLabel(o.material))),"#0369A1")
+      +groupCard("By order type",toRows(groupBy(o=>o.type==="rx"?"Rx lenses":o.type==="readers"?"Ready readers":"Frames / accessories")),"#334155")
+      +'<div class="repcard"><div class="rep-t">Coating attach rate</div>'
+      +(coat.length?coat.map(r=>bar(r.k,r.v,maxC,r.sub,"#B45309",v=>v+" orders")).join("")
+        :'<div class="rep-e">No Rx orders in this period.</div>')+'</div>';
+  }
+
+  if(ST.repView==="service"){
+    const del=ST.orders.filter(o=>o.deliveredAt&&!o.cancelled);
+    const avgTat=del.length?del.reduce((s,o)=>s+daysBetween(o.createdAt,o.deliveredAt),0)/del.length:0;
+    const overdue=ST.orders.filter(o=>o.promised&&o.stage!=="delivered"&&!o.cancelled&&new Date(o.promised)<new Date())
+      .sort((a,b)=>new Date(a.promised)-new Date(b.promised));
+    const past=ST.orders.filter(o=>!o.cancelled&&isPastTerms(o,pOf(o.practice).terms)).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+    const cancelledCount=ST.orders.filter(o=>o.cancelled).length;
+    const maxS=Math.max(1,...STAGE_ORDER.map(k=>ST.orders.filter(o=>o.stage===k&&!o.cancelled).length));
+    body='<div class="kpigrid">'
+      +kpi("Avg turnaround",avgTat.toFixed(1)+" d")
+      +kpi("Orders delivered",del.length)
+      +kpi("Past promised date",overdue.length,overdue.length?"neg":"pos")
+      +kpi("Past payment terms",past.length,past.length?"neg":"pos")
+      +(cancelledCount>0?kpi("Cancelled",cancelledCount,"",true):"")
+      +'</div>'
+      +'<div class="repcard"><div class="rep-t">Where work is sitting</div>'
+      +STAGE_ORDER.map(k=>bar(STAGES[k].label,ST.orders.filter(o=>o.stage===k&&!o.cancelled).length,maxS,"",STAGES[k].color,
+        v=>v+" order"+(v!==1?"s":""))).join("")+'</div>'
+      +'<div class="repcard"><div class="rep-t">Overdue against promised date</div>'
+      +(overdue.length?overdue.slice(0,12).map(o=>
+        '<div class="tblrow" data-act="detail" data-id="'+o.id+'"><div class="flex1">'
+        +'<div class="tbl-name">'+esc(o.practice)+'</div><div class="tbl-sub">'
+        +(o.jobRef?esc(o.jobRef)+' · ':'')+'promised '+fmtDay(o.promised)+' · '+(STAGES[o.stage]||{}).short+'</div></div>'
+        +'<span class="tbl-n" style="color:#DC2626;font-weight:700">'+daysAgo(o.promised)+'d</span></div>').join("")
+        :'<div class="rep-e">Nothing overdue. All on schedule.</div>')+'</div>'
+      +'<div class="repcard"><div class="rep-t">Bills past payment terms</div>'
+      +(past.length?past.slice(0,12).map(o=>
+        '<div class="tblrow" data-act="stmt" data-v="'+esc(o.practice)+'"><div class="flex1">'
+        +'<div class="tbl-name">'+esc(o.practice)+'</div><div class="tbl-sub">'+fmtDay(o.createdAt)
+        +' · terms '+(pOf(o.practice).terms||"—")+'d · '+daysAgo(o.createdAt)+'d old</div></div>'
+        +'<span class="tbl-n" style="color:#B45309;font-weight:700">'+money0(orderReceivable(o))+'</span></div>').join("")
+        :'<div class="rep-e">Nothing past terms.</div>')+'</div>';
+  }
+
+  if(ST.repView==="gst"){
+    const byRate={};
+    po.forEach(o=>{const r=oRate(o);byRate[r]=byRate[r]||{taxable:0,tax:0,cgst:0,sgst:0,igst:0,n:0};
+      const b=byRate[r],t=oGst(o);
+      b.n++;b.taxable+=oTaxable(o);b.tax+=t;
+      if(isInterState(o))b.igst+=t; else {b.cgst+=t/2;b.sgst+=t/2;}});
+    const rates=Object.keys(byRate).map(Number).sort((a,b)=>a-b);
+    const tot=rates.reduce((a,r)=>{const b=byRate[r];
+      return {taxable:a.taxable+b.taxable,tax:a.tax+b.tax,cgst:a.cgst+b.cgst,sgst:a.sgst+b.sgst,igst:a.igst+b.igst};},
+      {taxable:0,tax:0,cgst:0,sgst:0,igst:0});
+    const noState=po.filter(o=>!(PM[o.practice]&&PM[o.practice].state)).length;
+    const bizOK=ST.biz.state&&ST.biz.gstin;
+
+    body=(!bizOK?'<div class="warnbox">Set your business GSTIN and state in Settings (gear icon, top right). '
+        +'Without your state, the app cannot tell intra-state (CGST+SGST) from inter-state (IGST) sales.</div>':'')
+      +(noState>0?'<div class="warnbox">'+noState+' order'+(noState!==1?"s":"")+' in this period '+(noState!==1?"are":"is")
+        +' for a customer with no state set, so '+(noState!==1?"they are":"it is")+' treated as intra-state. Add the state on the customer record.</div>':'')
+      +'<div class="kpigrid">'
+      +kpi("Taxable value",money0(tot.taxable))
+      +kpi("Total GST",money0(tot.tax),"pos")
+      +kpi("CGST",money0(tot.cgst))
+      +kpi("SGST",money0(tot.sgst))
+      +kpi("IGST",money0(tot.igst))
+      +kpi("Invoice total",money0(tot.taxable+tot.tax))
+      +'</div>'
+      +'<div class="repcard"><div class="rep-t">By GST rate</div>'
+      +'<div class="tblhead"><span class="flex1">Rate</span><span class="tbl-n">Ord</span>'
+      +'<span class="tbl-n">Taxable</span><span class="tbl-n">Tax</span></div>'
+      +(rates.length?rates.map(r=>{const b=byRate[r];
+        return '<div class="tblrow" style="cursor:default"><div class="flex1"><div class="tbl-name">'+r+'%</div>'
+        +'<div class="tbl-sub">CGST '+money0(b.cgst)+' · SGST '+money0(b.sgst)+' · IGST '+money0(b.igst)+'</div></div>'
+        +'<span class="tbl-n">'+b.n+'</span><span class="tbl-n">'+money0(b.taxable)+'</span>'
+        +'<span class="tbl-n" style="font-weight:700">'+money0(b.tax)+'</span></div>';}).join("")
+        :'<div class="rep-e">No orders in this period.</div>')
+      +'</div>'
+      +'<div class="infobox">This is a working summary to help you prepare returns, not a filing. '
+      +'Confirm rates, HSN codes and treatment with your accountant before filing.</div>';
+  }
+
+  return '<div class="pad">'+periodChips()+seg+body+'</div>';
+}
+
+/* ============ EXPENSES VIEW ============ */
+function viewMoney(){
+  const range=periodRange(ST.period);
+  const pe=ST.expenses.filter(e=>inRange(e.date,range)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const total=pe.reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const byCat={};pe.forEach(e=>{byCat[e.category]=(byCat[e.category]||0)+(Number(e.amount)||0);});
+  const cats=Object.keys(byCat).map(k=>({k:k,v:byCat[k]})).sort((a,b)=>b.v-a.v);
+  return '<div class="pad">'+periodChips()
+    +'<div class="owed exp" style="margin:0 0 14px"><div><div class="owed-l">Expenses this period</div>'
+    +'<div class="owed-v">'+money(total)+'</div></div><span style="opacity:.32">'+ic("receipt",28)+'</span></div>'
+    +(cats.length?groupCard("By category",cats,"#B45309"):"")
+    +'<div class="sectitle">All entries</div>'
+    +(pe.length?pe.map(e=>
+      '<div class="exprow"><div class="flex1"><div class="exp-d">'+esc(e.description||e.category)+'</div>'
+      +'<div class="exp-m">'+esc(e.category)+' · '+fmtDay(e.date)+'</div>'
+      +(e.notes?'<div class="exp-n">'+esc(e.notes)+'</div>':'')+'</div>'
+      +'<span class="exp-a">'+money(e.amount)+'</span>'
+      +'<button class="iconbtn" data-act="delexp" data-id="'+e.id+'">'+ic("trash",15)+'</button></div>').join("")
+      :'<div class="empty">'+ic("receipt",28)+'<p>No expenses in this period. Tap + to add one.</p></div>')
+    +'</div>';
+}
+
+/* ============ MODAL SHELL ============ */
+const MODAL=()=>document.getElementById("modal");
+function closeModal(){MODAL().innerHTML="";MODAL().classList.add("hide");}
+function openModal(html,keepScroll){
+  const m=MODAL();
+  let prevScroll=0;
+  if(keepScroll){ const s=m.querySelector(".sheet"); if(s) prevScroll=s.scrollTop; }
+  m.innerHTML='<div class="overlay" data-act="overlay"><div class="sheet" data-stop="1">'+html+'</div></div>';
+  m.classList.remove("hide");
+  if(keepScroll && prevScroll>0){ const s=m.querySelector(".sheet"); if(s) s.scrollTop=prevScroll; }
+}
+const sheetHead=(title,sub,extra)=>'<div class="handle"></div><div class="sheet-head"><div style="min-width:0">'
+  +'<h2>'+esc(title)+'</h2>'+(sub?'<p class="sheet-sub">'+esc(sub)+'</p>':'')+'</div>'
+  +'<div style="display:flex;gap:6px">'+(extra||"")+'<button class="btn-ghost" data-act="close">'+ic("x",20)+'</button></div></div>';
+const optsOf=(arr,sel)=>arr.map(v=>'<option'+(String(sel)===String(v)?' selected':'')+'>'+esc(v)+'</option>').join("");
+
+/* ============ SETTINGS ============ */
+function openSettings(){
+  const b=ST.biz;
+  const storeMsg = ST.storeMode==="idb" ? "Saving to this device's database (best)."
+    : ST.storeMode==="local" ? "Saving to browser storage on this device."
+    : "NOT SAVING — this browser blocks storage for local files. Back up before closing.";
+  openModal(sheetHead("Settings")
+    +'<div class="sectitle">Your business</div>'
+    +'<div class="field"><label class="lbl">Business name</label>'
+    +'<input class="inp" data-bf="name" value="'+esc(b.name)+'" placeholder="e.g. Sharma Optical Supplies"></div>'
+    +'<div class="field"><label class="lbl">Your GSTIN</label>'
+    +'<input class="inp" data-bf="gstin" value="'+esc(b.gstin)+'" placeholder="15-character GSTIN" maxlength="15" style="text-transform:uppercase"></div>'
+    +'<div class="field"><label class="lbl">Your state <span style="font-weight:400;color:#94A3B8">— decides CGST+SGST vs IGST</span></label>'
+    +'<select class="inp" data-bf="state"><option value="">Select…</option>'+optsOf(STATES,b.state)+'</select></div>'
+    +'<div class="sectitle">Defaults for new orders</div>'
+    +'<div class="field"><label class="lbl">Default GST rate</label><div class="chips">'
+    +GST_RATES.map(r=>'<button class="chip'+(String(b.gst)===r?" on":"")+'" data-act="bsetv" data-k="gst" data-v="'+r+'">'+r+'%</button>').join("")
+    +'</div></div>'
+    +'<div class="row3">'
+    +'<div class="field"><label class="lbl">HSN lenses</label><input class="inp" data-bf="hsnLens" value="'+esc(b.hsnLens)+'"></div>'
+    +'<div class="field"><label class="lbl">HSN frames</label><input class="inp" data-bf="hsnFrame" value="'+esc(b.hsnFrame)+'"></div>'
+    +'<div class="field"><label class="lbl">HSN readers</label><input class="inp" data-bf="hsnReader" value="'+esc(b.hsnReader)+'"></div></div>'
+    +'<div class="infobox">GST rates and HSN codes change. These are editable defaults, not advice — confirm the current '
+    +'ones for your products with your accountant.</div>'
+    +'<div class="sectitle">Data</div>'
+    +'<div class="'+(ST.storeMode==="memory"?"warnbox":"infobox")+'">'+storeMsg+'</div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn-main" style="flex:1;margin-top:0" data-act="backup">'+ic("save",17)+' Backup</button>'
+    +'<button class="btn-main alt" style="flex:1;margin-top:0" data-act="restore">'+ic("upload",17)+' Restore</button></div>'
+    +'<p class="hint">Backup downloads a .json file with every order, customer and expense. Keep it in Google Drive.</p>'
+    +'<button class="btn-main" data-act="savebiz">'+ic("check",18)+' Save settings</button>', true);
+}
+
+/* ============ ORDER DETAIL ============ */
+function openDetail(id){
+  const o=ST.orders.find(x=>x.id===id); if(!o)return;
+  const p=pOf(o.practice), st=STAGES[o.stage]||STAGES.received;
+  const cancelled=!!o.cancelled;
+  const row=(l,v)=>v?'<div class="drow"><span class="dlbl">'+esc(l)+'</span><span class="dval">'+esc(v)+'</span></div>':"";
+  const taxable=oTaxable(o), gst=oGst(o), inv=oInvoice(o), prof=orderProfit(o);
+  const inter=isInterState(o);
+  let rx="";
+  if(o.type==="rx"){
+    rx='<div class="rxtbl"><div class="rxt-h"><span></span><span>SPH</span><span>CYL</span><span>AXIS</span><span>ADD</span><span>PRISM</span></div>'
+      +[["OD (R)",o.od],["OS (L)",o.os]].map(x=>{const e=x[1]||{};
+        return '<div class="rxt-r"><span class="rxt-e">'+x[0]+'</span><span>'+(dpt(e.sph)||"—")+'</span><span>'+(dpt(e.cyl)||"—")+'</span>'
+        +'<span>'+(axisFmt(e.axis)||"—")+'</span><span>'+(dpt(e.add)||"—")+'</span>'
+        +'<span>'+(e.prism?esc(e.prism)+"Δ "+(e.base&&e.base!=="—"?e.base.replace("Base ","B"):""):"—")+'</span></div>';}).join("")
+      +'</div>';
+  }
+  let det="";
+  if(o.type==="rx"){
+    det=row("Lens type",LENS_TYPES[o.lensType])+row("Design",o.palDesign)+row("Corridor",o.corridor)+row("Segment",o.segType)
+      +row("PD (binocular)",o.pdBin?o.pdBin+" mm":"")
+      +row("PD (mono R/L)",(o.pdOD||o.pdOS)?((o.pdOD||"—")+" / "+(o.pdOS||"—")+" mm"):"")
+      +row("Near PD",o.pdNear?o.pdNear+" mm":"")+row("Seg / fitting height",o.segHeight?o.segHeight+" mm":"")
+      +row("Material",matLabel(o.material))+row("Coatings",(o.coatings||[]).join(", "))
+      +row("Photochromic",o.photo&&o.photo!=="None"?o.photo:"")
+      +row("Tint",o.tintType&&o.tintType!=="None"?(o.tintType+" · "+o.tintColor+" · "+o.tintPct+"%"):"")
+      +row("Frame type",o.frameType)+row("Frame supply",o.frameSupply)+row("Edging",o.edging)+row("Blank diameter",o.diameter);
+  } else if(o.type==="readers"){ det=row("Power",o.readerPower)+row("Style",o.description); }
+  else { det=row("Description",o.description); }
+
+  openModal(sheetHead(o.practice,geoLine(p)+(o.jobRef?" · "+o.jobRef:"")+(o.patientRef?" · "+o.patientRef:""),
+      cancelled?"":'<button class="btn-ghost" data-act="editorder" data-id="'+o.id+'">'+ic("pencil",16)+'</button>')
+    +'<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">'
+    +(cancelled?'<span class="badge" style="font-size:12px;padding:5px 11px;color:#DC2626;background:#FEE2E2">Cancelled</span>'
+      :'<span class="badge" style="font-size:12px;padding:5px 11px;color:'+st.color+';background:'+st.bg+'">'+st.label+'</span>')
+    +'<span class="badge" style="font-size:12px;padding:5px 11px;color:'+(o.paid?"#0369A1":"#B45309")+';background:'+(o.paid?"#DBEAFE":"#FEF3C7")+'">'
+    +(o.paid?"Paid":"Unpaid")+' · '+money(inv)+'</span>'
+    +(o.priority==="urgent"&&!cancelled?'<span class="badge" style="font-size:12px;padding:5px 11px;color:#DC2626;background:#FEE2E2">Urgent</span>':'')
+    +'</div>'
+    +(cancelled?'<div class="warnbox" style="margin-bottom:14px">This order is cancelled and excluded from open-pipeline counts. It stays in your records and Excel export'
+      +(o.cancelledAt?' — cancelled '+fmtDate(o.cancelledAt):'')+'.</div>':'')
+    +'<div class="mbar">'
+    +'<div><div class="mlbl">Taxable</div><div class="mval">'+money(taxable)+'</div></div>'
+    +'<div><div class="mlbl">GST '+oRate(o)+'%</div><div class="mval">'+money(gst)+'</div></div>'
+    +'<div><div class="mlbl">Invoice</div><div class="mval">'+money(inv)+'</div></div>'
+    +'<div><div class="mlbl">Margin</div><div class="mval '+(prof>=0?"pos":"neg")+'">'+(taxable?pct(prof,taxable).toFixed(0)+"%":"—")+'</div></div></div>'
+    +(gst>0?'<div class="infobox" style="margin-bottom:14px">'+(inter
+      ?'Inter-state supply — IGST '+money(gst)
+      :'Intra-state supply — CGST '+money(gst/2)+' + SGST '+money(gst/2))
+      +(o.hsn?' · HSN '+esc(o.hsn):'')+'</div>':'')
+    +rx
+    +'<div class="dblock">'+det
+    +row("Quantity",o.qty)+row("Unit price (excl GST)",o.price?money(o.price):"")
+    +row("Unit cost",o.cost?money(o.cost):"")+row("Cost total",orderCost(o)?money(orderCost(o)):"")
+    +row("Profit",money(prof))
+    +row("HSN",o.hsn)+row("GST rate",oRate(o)+"%")
+    +row("Promised",fmtDay(o.promised))+row("Booked",fmtDate(o.createdAt))
+    +row("Delivered",o.deliveredAt?fmtDate(o.deliveredAt):"")
+    +row("Turnaround",o.deliveredAt?daysBetween(o.createdAt,o.deliveredAt)+" days":"")
+    +row("Paid on",o.paidAt?fmtDate(o.paidAt):"")+'</div>'
+    +(o.notes?'<div class="notesbox">'+esc(o.notes)+'</div>':'')
+    +(cancelled?'':'<label class="lbl">Move to stage</label><div class="stagepick">'
+    +STAGE_ORDER.map(k=>'<button class="opt'+(o.stage===k?" on":"")+'" data-act="stage" data-id="'+o.id+'" data-v="'+k+'" data-keep="1">'
+      +STAGES[k].short+'</button>').join("")+'</div>')
+    +'<div style="display:flex;gap:8px;margin-top:14px">'
+    +(cancelled?'':'<button class="btn-main '+(o.paid?"alt":"")+'" style="flex:1" data-act="paid" data-id="'+o.id+'" data-keep="1">'
+    +(o.paid?"Mark unpaid":"Mark paid "+money(inv))+'</button>')
+    +(cancelled
+      ?'<button class="btn-main" style="flex:1" data-act="uncancel" data-id="'+o.id+'">'+ic("check",17)+' Restore order</button>'
+      :'<button class="btn-del" data-act="cancelorder" data-id="'+o.id+'">'+ic("x",17)+'</button>')
+    +'</div>'
+    +(cancelled?'':'<button class="hint-btn" data-act="delorder" data-id="'+o.id+'">Delete permanently instead</button>'));
+}
+
+/* ============ STATEMENT ============ */
+function openStatement(name){
+  const p=pOf(name), coAll=ST.orders.filter(o=>o.practice===name);
+  const co=coAll.filter(o=>!o.cancelled);
+  const cancelledJ=coAll.filter(o=>o.cancelled).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const unpaid=co.filter(o=>!o.paid).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  const paidJ=co.filter(o=>o.paid);
+  const billed=co.reduce((s,o)=>s+orderReceivable(o),0);
+  const taxable=co.reduce((s,o)=>s+orderRevenue(o),0);
+  const cost=co.reduce((s,o)=>s+orderCost(o),0);
+  const paidT=paidJ.reduce((s,o)=>s+orderReceivable(o),0);
+  const owed=billed-paidT;
+  const b={cur:0,b30:0,b60:0};
+  unpaid.forEach(o=>{const d=daysAgo(o.createdAt);const v=orderReceivable(o);
+    if(d<=30)b.cur+=v;else if(d<=60)b.b30+=v;else b.b60+=v;});
+
+  openModal(sheetHead(name,geoLine(p)||"No address set",
+      '<button class="btn-ghost" data-act="editpractice" data-v="'+esc(name)+'">'+ic("pencil",16)+'</button>')
+    +((p.addr1||p.phone||p.email||p.contact||p.gstin)?'<div class="contactcard">'
+      +(p.contact?'<div class="contactrow">'+ic("building",13)+' '+esc(p.contact)+'</div>':'')
+      +(addrLine(p)?'<div class="contactrow">'+ic("pin",13)+' '+esc(addrLine(p))+'</div>':'')
+      +(p.gstin?'<div class="contactrow">'+ic("clip",13)+' GSTIN '+esc(p.gstin)+'</div>':'')
+      +(p.phone?'<a class="contactrow" href="tel:'+esc(p.phone)+'">'+ic("phone",13)+' '+esc(p.phone)+'</a>':'')
+      +(p.email?'<a class="contactrow" href="mailto:'+esc(p.email)+'">'+ic("mail",13)+' '+esc(p.email)+'</a>':'')
+      +(p.terms?'<div class="contactrow">'+ic("timer",13)+' Terms: '+(p.terms==="0"?"on delivery":esc(p.terms)+" days")+'</div>':'')
+      +'</div>':'')
+    +'<div class="kpigrid3">'
+    +kpi("Total orders",co.length)+kpi("Total billed",money0(billed))
+    +kpi("Total paid",money0(paidT),"pos")+kpi("Outstanding",money0(owed),owed>0?"neg":"pos")
+    +kpi("Taxable value",money0(taxable))+kpi("Margin",pct(taxable-cost,taxable).toFixed(0)+"%","pos")+'</div>'
+    +(owed>0?'<div class="agerow">'
+      +[["0–30 days",b.cur,"#0369A1"],["31–60",b.b30,"#B45309"],["60+ days",b.b60,"#DC2626"]].map(x=>
+        '<div class="agecard"><div class="age-v" style="color:'+x[2]+'">'+money0(x[1])+'</div><div class="age-l">'+x[0]+'</div></div>').join("")
+      +'</div>':'')
+    +(unpaid.length?'<div class="sectitle">Unpaid orders</div>'
+      +unpaid.map(o=>'<div class="stmtrow"><div class="flex1" data-act="detail" data-id="'+o.id+'">'
+        +'<div class="stmt-t">'+(o.jobRef?esc(o.jobRef)+' · ':'')+esc(typeLabelOf(o))+'</div>'
+        +'<div class="stmt-s">'+fmtDay(o.createdAt)+' · '+daysAgo(o.createdAt)+' days'
+        +(isPastTerms(o,p.terms)?' · <span class="late">past terms</span>':'')+'</div></div>'
+        +'<span class="stmt-a">'+money(orderReceivable(o))+'</span>'
+        +'<button class="stmt-p" data-act="paid" data-id="'+o.id+'" data-back="stmt" data-v="'+esc(name)+'">'+ic("check",15)+'</button></div>').join("")
+      +'<button class="btn-main" style="margin-top:14px" data-act="settle" data-v="'+esc(name)+'">'+ic("checks",18)+' Settle account · '+money(owed)+'</button>'
+      :'<p style="color:#64748B;font-size:14px;text-align:center;padding:18px 0">Nothing outstanding. Account is clear.</p>')
+    +(paidJ.length?'<div class="sectitle">Recently paid</div>'
+      +paidJ.slice(0,6).map(o=>'<div class="stmtrow" style="opacity:.65"><div class="flex1" data-act="detail" data-id="'+o.id+'">'
+        +'<div class="stmt-t">'+(o.jobRef?esc(o.jobRef)+' · ':'')+esc(typeLabelOf(o))+'</div>'
+        +'<div class="stmt-s">Paid '+(o.paidAt?fmtDay(o.paidAt):"")+'</div></div>'
+        +'<span class="stmt-a">'+money(orderReceivable(o))+'</span>'
+        +'<button class="stmt-p off" data-act="paid" data-id="'+o.id+'" data-back="stmt" data-v="'+esc(name)+'">'+ic("x",14)+'</button></div>').join("")
+      :'')
+    +(cancelledJ.length?'<div class="sectitle">Cancelled</div>'
+      +cancelledJ.slice(0,6).map(o=>'<div class="stmtrow" style="opacity:.5" data-act="detail" data-id="'+o.id+'">'
+        +'<div class="flex1"><div class="stmt-t">'+(o.jobRef?esc(o.jobRef)+' · ':'')+esc(typeLabelOf(o))+'</div>'
+        +'<div class="stmt-s">Cancelled '+(o.cancelledAt?fmtDay(o.cancelledAt):"")+'</div></div>'
+        +'<span class="stmt-a" style="text-decoration:line-through;color:#94A3B8">'+money(orderReceivable(o))+'</span></div>').join("")
+      :''));
+}
+
+/* ============ CUSTOMER EDITOR ============ */
+let PE=null;
+function openPracticeEditor(name){
+  PE=name?Object.assign(emptyPractice(),pOf(name),{__orig:name}):Object.assign(emptyPractice(),{__orig:""});
+  renderPracticeEditor();
+}
+function renderPracticeEditor(){
+  const f=PE, isNew=!f.__orig;
+  const cities=[...new Set(ST.practices.map(p=>p.city).filter(Boolean))];
+  const dists=[...new Set(ST.practices.map(p=>p.district).filter(Boolean))];
+  const areas=[...new Set(ST.practices.map(p=>p.area).filter(Boolean))];
+  const dup=f.name.trim()&&f.name.trim().toLowerCase()!==f.__orig.toLowerCase()
+    &&ST.practices.some(p=>p.name.toLowerCase()===f.name.trim().toLowerCase());
+  const valid=f.name.trim()&&!dup;
+  const inp=(k,ph,type,extra)=>'<input class="inp" data-pf="'+k+'" type="'+(type||"text")+'" value="'+esc(f[k])+'" placeholder="'+esc(ph||"")+'"'+(extra||"")+'>';
+  const chips=(k,arr)=>arr.length?'<div class="chips" style="margin-top:8px">'+arr.map(v=>
+    '<button class="chip'+(f[k]===v?" on":"")+'" data-act="psetv" data-k="'+k+'" data-v="'+esc(v)+'">'+esc(v)+'</button>').join("")+'</div>':"";
+
+  openModal(sheetHead(isNew?"Add customer":"Edit customer")
+    +'<div class="field"><label class="lbl">Shop / practice name</label>'+inp("name","e.g. Sharma Opticals")
+    +(dup?'<p class="err">A customer with this name already exists.</p>':'')+'</div>'
+    +'<div class="sectitle">Contact</div>'
+    +'<div class="field"><label class="lbl">Contact person</label>'+inp("contact","Owner / manager")+'</div>'
+    +'<div class="row2"><div class="field"><label class="lbl">Mobile</label>'+inp("phone","+91 98xxxxxxxx","tel",' maxlength="14" inputmode="tel" data-act="phoneguard"')+'</div>'
+    +'<div class="field"><label class="lbl">Email</label>'+inp("email","orders@…","email")+'</div></div>'
+    +'<div class="field"><label class="lbl">GSTIN</label>'+inp("gstin","15-character GSTIN","text",' maxlength="15" style="text-transform:uppercase"')+'</div>'
+    +'<div class="sectitle">Address</div>'
+    +'<div class="field"><label class="lbl">Address line 1</label>'+inp("addr1","Shop no., building, street")+'</div>'
+    +'<div class="field"><label class="lbl">Address line 2 / area</label>'+inp("addr2","Locality")+'</div>'
+    +'<div class="row2"><div class="field"><label class="lbl">City / town</label>'+inp("city","e.g. Hyderabad")+'</div>'
+    +'<div class="field"><label class="lbl">PIN code</label>'+inp("pin","500001","tel",' maxlength="6" data-act="pinguard"')+'</div></div>'
+    +(cities.length?'<div style="margin:-4px 0 13px">'+chips("city",cities.slice(0,8))+'</div>':'')
+    +'<div class="field"><label class="lbl">District</label>'+inp("district","e.g. Ranga Reddy")+chips("district",dists)+'</div>'
+    +'<div class="field"><label class="lbl">State <span style="font-weight:400;color:#94A3B8">— sets IGST vs CGST+SGST</span></label>'
+    +'<select class="inp" data-pf="state"><option value="">Select…</option>'+optsOf(STATES,f.state)+'</select></div>'
+    +'<div class="field"><label class="lbl">Delivery route</label>'+inp("area","e.g. Tuesday city run")+chips("area",areas)+'</div>'
+    +'<div class="field"><label class="lbl">Payment terms</label><div class="chips">'
+    +TERMS_OPTS.map(t=>'<button class="chip'+(String(f.terms)===t?" on":"")+'" data-act="psetv" data-k="terms" data-v="'+t+'">'
+      +(t==="0"?"On delivery":t+" days")+'</button>').join("")+'</div></div>'
+    +'<div class="field"><label class="lbl">Account notes</label>'+inp("notes","Delivery instructions, discounts…")+'</div>'
+    +'<button class="btn-main'+(valid?"":" dis")+'" data-act="savepractice">'+ic("check",18)+' Save customer</button>', true);
+}
+
+/* ============ EXPENSE FORM ============ */
+function openExpenseForm(){
+  const today=new Date().toISOString().slice(0,10);
+  openModal(sheetHead("Add expense")
+    +'<div class="row2"><div class="field"><label class="lbl">Date</label>'
+    +'<input class="inp" id="ex_date" type="date" value="'+today+'"></div>'
+    +'<div class="field"><label class="lbl">Amount (₹)</label>'
+    +'<input class="inp" id="ex_amt" type="number" inputmode="decimal" placeholder="0.00"></div></div>'
+    +'<div class="field"><label class="lbl">Category</label><select class="inp" id="ex_cat">'
+    +EXPENSE_CATS.map(c=>'<option>'+c+'</option>').join("")+'</select></div>'
+    +'<div class="field"><label class="lbl">Description</label>'
+    +'<input class="inp" id="ex_desc" placeholder="e.g. Lens blanks — supplier bill"></div>'
+    +'<div class="field"><label class="lbl">Notes</label>'
+    +'<input class="inp" id="ex_notes" placeholder="Bill no., supplier, GSTIN…"></div>'
+    +'<button class="btn-main" data-act="saveexp">'+ic("check",18)+' Save expense</button>');
+}
+
+/* ============ WHEEL PICKER ============ */
+let WP=null; // {eye, key, cfg, value} for single-wheel fields; {eye,key,cfg,tens,ones} for axis
+function openWheelPicker(eye,key){
+  grabForm();
+  const cfg=WHEEL_CFG[key];
+  const cur=FS[eye][key];
+  if(key==="axis"){
+    const n = cur===""||cur==null ? null : Number(cur);
+    WP={eye:eye,key:key,cfg:cfg,
+      tens: n==null ? 0 : Math.floor(n/5)*5,
+      ones: n==null ? 0 : n%5};
+  } else {
+    WP={eye:eye,key:key,cfg:cfg,value:cur===""||cur==null?null:Number(cur)};
+  }
+  renderWheelPicker();
+}
+function renderWheelPicker(){
+  const cfg=WP.cfg;
+  const isAxis = WP.key==="axis";
+  const wheelsHtml = isAxis
+    ? '<div class="dualwheel">'
+      +'<div class="wheelbox"><div class="fadetop"></div><div class="fadebot"></div><div class="selbar"></div><div class="track" id="wheelTrackTens"></div></div>'
+      +'<div class="dualwheel-sep">°</div>'
+      +'<div class="wheelbox"><div class="fadetop"></div><div class="fadebot"></div><div class="selbar"></div><div class="track" id="wheelTrackOnes"></div></div>'
+      +'</div>'
+    : '<div class="wheelbox"><div class="fadetop"></div><div class="fadebot"></div><div class="selbar"></div><div class="track" id="wheelTrack"></div></div>';
+  const html='<div class="handle"></div>'
+    +'<div class="wp-title">'+cfg.label+' <span class="wp-eye">'+(WP.eye==="od"?"OD (Right)":"OS (Left)")+'</span></div>'
+    +(isAxis?'<div class="wp-hint">Common: 180 (horizontal) · 90 (vertical)</div>':'')
+    +wheelsHtml
+    +'<div class="wp-actions">'
+    +'<button class="wp-clear" data-act="wheelclear">Clear</button>'
+    +'<button class="wp-done" data-act="wheeldone">'+ic("check",17)+' Done</button></div>';
+  const modal=MODAL();
+  modal.insertAdjacentHTML("beforeend",'<div class="overlay wp-overlay" data-act="wheeloverlay"><div class="sheet wp-sheet" data-stop="1">'+html+'</div></div>');
+  if(isAxis){
+    buildOneWheel("wheelTrackTens", [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150,155,160,165,170,175,180],
+      v=>String(v), 0, ()=>WP.tens, v=>{WP.tens=v;});
+    buildOneWheel("wheelTrackOnes", [0,1,2,3,4,5,6,7,8,9],
+      v=>String(v), 0, ()=>WP.ones, v=>{WP.ones=v;});
+  } else {
+    buildOneWheel("wheelTrack", cfg.vals, cfg.fmt, cfg.zero, ()=>WP.value, v=>{WP.value=v;});
+  }
+}
+function buildOneWheel(elId, vals, fmt, zeroVal, getCurrent, setCurrent){
+  const el=document.getElementById(elId);
+  el.innerHTML='<div class="wpad"></div>'+vals.map(v=>
+    '<div class="witem'+(v===zeroVal?" wzero":"")+'" data-v="'+v+'">'+fmt(v)+'</div>').join("")+'<div class="wpad"></div>';
+  let ticking=false;
+  let ready=false; // ignore scroll events fired by initial browser layout, before we've explicitly positioned the wheel
+  function updateCenter(commit){
+    const rect=el.getBoundingClientRect(); const cy=rect.top+rect.height/2;
+    let closest=null,minD=1e9;
+    el.querySelectorAll(".witem").forEach(it=>{
+      const r=it.getBoundingClientRect(); const d=Math.abs((r.top+r.height/2)-cy);
+      it.classList.remove("wcenter"); if(d<minD){minD=d;closest=it;}
+    });
+    if(closest){ closest.classList.add("wcenter"); if(commit!==false&&ready) setCurrent(Number(closest.dataset.v)); }
+  }
+  el.onscroll=function(){ if(!ticking){ ticking=true; requestAnimationFrame(function(){updateCenter();ticking=false;}); } };
+  function positionWheel(){
+    const items=el.querySelectorAll(".witem");
+    const cur=getCurrent();
+    let target=null;
+    if(cur!=null){
+      for(let i=0;i<items.length;i++){ if(Number(items[i].dataset.v)===cur){ target=items[i]; break; } }
+    }
+    if(!target) target=el.querySelector(".wzero");
+    if(target){
+      const itemCenter = target.offsetTop + target.offsetHeight/2;
+      el.scrollTop = itemCenter - el.clientHeight/2;
+    }
+    ready=true; // now that we've set the deliberate position, real user scrolls should update the value
+    const rect=el.getBoundingClientRect(); const cy=rect.top+rect.height/2;
+    let closest=null,minD=1e9;
+    el.querySelectorAll(".witem").forEach(it=>{
+      const r=it.getBoundingClientRect(); const d=Math.abs((r.top+r.height/2)-cy);
+      it.classList.remove("wcenter"); if(d<minD){minD=d;closest=it;}
+    });
+    if(closest) closest.classList.add("wcenter");
+  }
+  // Wait for the sheet's slide-up transition (120ms) to finish before measuring
+  // positions, otherwise getBoundingClientRect reads mid-animation coordinates.
+  setTimeout(positionWheel, 150);
+}
+function closeWheelPicker(save){
+  const ov=document.querySelector(".wp-overlay");
+  if(ov) ov.remove();
+  if(save && WP){
+    if(WP.key==="axis"){
+      const v=Math.min(180, WP.tens+WP.ones);
+      FS[WP.eye][WP.key] = String(v);
+    } else {
+      FS[WP.eye][WP.key] = WP.value==null ? "" : String(WP.value);
+    }
+  }
+  WP=null;
+  renderOrderForm();
+}
+
+
+let FS=null;
+function defaultHsn(type){const b=ST.biz;
+  return type==="rx"?(b.hsnLens||""):type==="readers"?(b.hsnReader||""):(b.hsnFrame||"");}
+function newFS(){return {
+  editId:null,
+  mode:ST.practices.length?"existing":"new", dist:"All", np:emptyPractice(),
+  type:"rx", practice:"", patientRef:"", jobRef:"",
+  lensType:"sv", palDesign:"", corridor:"", segType:"",
+  od:emptyEye(), os:emptyEye(),
+  pdBin:"",pdOD:"",pdOS:"",pdNear:"",segHeight:"",
+  material:"cr39", coatings:["Hard coat","UV400"], photo:"None",
+  tintType:"None", tintColor:"Grey", tintPct:"50",
+  frameType:"Full rim", frameSupply:"Frame enclosed", edging:"Edged & fitted", diameter:"70mm",
+  readerPower:"+2.00", description:"",
+  qty:"1", price:"", cost:"", gstRate:(ST.biz.gst||"12"), hsn:defaultHsn("rx"),
+  priority:"standard", promised:"",
+  paid:false, notes:"", sec:{rx:true,lens:false,frame:false}
+};}
+function fsFromOrder(o){
+  return {
+    editId:o.id,
+    mode:"existing", dist:"All", np:emptyPractice(),
+    type:o.type, practice:o.practice, patientRef:o.patientRef||"", jobRef:o.jobRef||"",
+    lensType:o.lensType||"sv", palDesign:o.palDesign||"", corridor:o.corridor||"", segType:o.segType||"",
+    od:Object.assign(emptyEye(),o.od||{}), os:Object.assign(emptyEye(),o.os||{}),
+    pdBin:o.pdBin||"",pdOD:o.pdOD||"",pdOS:o.pdOS||"",pdNear:o.pdNear||"",segHeight:o.segHeight||"",
+    material:o.material||"cr39", coatings:(o.coatings||[]).slice(), photo:o.photo||"None",
+    tintType:o.tintType||"None", tintColor:o.tintColor||"Grey", tintPct:o.tintPct||"50",
+    frameType:o.frameType||"Full rim", frameSupply:o.frameSupply||"Frame enclosed",
+    edging:o.edging||"Edged & fitted", diameter:o.diameter||"70mm",
+    readerPower:o.readerPower||"+2.00", description:o.description||"",
+    qty:o.qty||"1", price:o.price||"", cost:o.cost||"", gstRate:o.gstRate||(ST.biz.gst||"12"), hsn:o.hsn||"",
+    priority:o.priority||"standard", promised:o.promised||"",
+    paid:!!o.paid, notes:o.notes||"", sec:{rx:true,lens:false,frame:false}
+  };
+}
+function grabForm(){
+  const m=MODAL(); if(!m||!FS)return;
+  m.querySelectorAll("[data-f]").forEach(el=>{
+    const k=el.getAttribute("data-f");
+    if(el.type==="checkbox"){FS[k]=el.checked;return;}
+    FS[k]=el.value;
+  });
+  m.querySelectorAll("input[data-eye],select[data-eye]").forEach(el=>{
+    FS[el.getAttribute("data-eye")][el.getAttribute("data-ek")]=el.value;
+  });
+  m.querySelectorAll("[data-nf]").forEach(el=>{FS.np[el.getAttribute("data-nf")]=el.value;});
+}
+function openOrderForm(){FS=newFS();renderOrderForm();}
+function openOrderFormEdit(order){FS=fsFromOrder(order);renderOrderForm();}
+function renderOrderForm(){
+  const f=FS;
+  const isEdit=!!f.editId;
+  const dists=["All"].concat([...new Set(ST.practices.map(p=>p.district).filter(Boolean))]);
+  const fp=ST.practices.filter(p=>f.dist==="All"||p.district===f.dist);
+  const chosen=ST.practices.find(p=>p.name===f.practice);
+  const qty=Number(f.qty)||0, taxable=qty*(Number(f.price)||0), tcost=qty*(Number(f.cost)||0);
+  const rate=Number(f.gstRate)||0, gst=taxable*rate/100, inv=taxable+gst, prof=taxable-tcost;
+  const needsSeg=["progressive","bifocal","trifocal"].includes(f.lensType);
+  const dupNew=f.mode==="new"&&f.np.name.trim()&&ST.practices.some(p=>p.name.toLowerCase()===f.np.name.trim().toLowerCase());
+  const custOK=isEdit?true:(f.mode==="existing"?!!f.practice:(!!f.np.name.trim()&&!dupNew));
+  const rxOK=f.type!=="rx"||f.od.sph!==""||f.os.sph!=="";
+  const accOK=f.type!=="accessory"||!!f.description.trim();
+  const valid=custOK&&rxOK&&accOK;
+
+  const sect=(key,title,inner)=>'<div class="sect'+(f.sec[key]?" open":"")+'">'
+    +'<button class="sect-head" data-act="sec" data-v="'+key+'"><span>'+title+'</span>'+ic("chev",16)+'</button>'
+    +(f.sec[key]?'<div class="sect-body">'+inner+'</div>':'')+'</div>';
+
+  let cust;
+  if(isEdit){
+    cust='<div class="chosen" style="margin-bottom:14px">'+ic("building",12)+' '+esc(f.practice)
+      +'<span style="color:#64748B"> · customer can\'t be changed when editing</span></div>';
+  } else if(f.mode==="existing"){
+    cust=ST.practices.length===0?'<div class="infobox">No customers yet — switch to “New customer” to add your first one.</div>'
+      :'<div class="row2"><div class="field"><label class="lbl">District filter</label>'
+      +'<select class="inp" data-act="distsel">'+dists.map(d=>'<option'+(f.dist===d?' selected':'')+'>'+esc(d)+'</option>').join("")+'</select></div>'
+      +'<div class="field"><label class="lbl">Customer</label><select class="inp" data-f="practice" data-act="rerender">'
+      +'<option value="">Select…</option>'
+      +fp.map(p=>'<option value="'+esc(p.name)+'"'+(f.practice===p.name?' selected':'')+'>'+esc(p.name)+(p.city?" — "+esc(p.city):"")+'</option>').join("")
+      +'</select></div></div>'
+      +(chosen?'<div class="chosen">'+ic("pin",12)+' '+esc(geoLine(chosen)||chosen.city||"No address")
+        +(chosen.gstin?' · GSTIN '+esc(chosen.gstin):'')
+        +(chosen.terms?'<span style="color:#64748B"> · terms '+(chosen.terms==="0"?"on delivery":esc(chosen.terms)+"d")+'</span>':'')+'</div>':'');
+  } else {
+    const ni=(k,ph,t,ex)=>'<input class="inp" data-nf="'+k+'" type="'+(t||"text")+'" value="'+esc(f.np[k])+'" placeholder="'+esc(ph||"")+'"'+(ex||"")+'>';
+    cust='<div class="field"><label class="lbl">Shop / practice name</label>'+ni("name","e.g. Sharma Opticals")
+      +(dupNew?'<p class="err">That customer already exists — switch to “Existing customer”.</p>':'')+'</div>'
+      +'<div class="field"><label class="lbl">Contact person</label>'+ni("contact","Owner / manager")+'</div>'
+      +'<div class="row2"><div class="field"><label class="lbl">Mobile</label>'+ni("phone","+91 98xxxxxxxx","tel",' maxlength="14" inputmode="tel" data-act="phoneguard"')+'</div>'
+      +'<div class="field"><label class="lbl">GSTIN</label>'+ni("gstin","15-char","text",' maxlength="15" style="text-transform:uppercase"')+'</div></div>'
+      +'<div class="field"><label class="lbl">Address</label>'+ni("addr1","Shop no., street")+'</div>'
+      +'<div class="row2"><div class="field"><label class="lbl">City / town</label>'+ni("city","e.g. Hyderabad")+'</div>'
+      +'<div class="field"><label class="lbl">PIN code</label>'+ni("pin","500001","tel",' maxlength="6" data-act="pinguard"')+'</div></div>'
+      +'<div class="field"><label class="lbl">District</label>'+ni("district","e.g. Ranga Reddy")
+      +(dists.length>1?'<div class="chips" style="margin-top:8px">'+dists.filter(d=>d!=="All").map(d=>
+        '<button class="chip'+(f.np.district===d?" on":"")+'" data-act="npsetv" data-k="district" data-v="'+esc(d)+'">'+esc(d)+'</button>').join("")+'</div>':'')
+      +'</div>'
+      +'<div class="field"><label class="lbl">State</label>'
+      +'<select class="inp" data-nf="state"><option value="">Select…</option>'+optsOf(STATES,f.np.state)+'</select></div>'
+      +'<div class="field"><label class="lbl">Payment terms</label><div class="chips">'
+      +TERMS_OPTS.map(t=>'<button class="chip'+(String(f.np.terms)===t?" on":"")+'" data-act="npsetv" data-k="terms" data-v="'+t+'">'
+        +(t==="0"?"On delivery":t+" days")+'</button>').join("")+'</div></div>';
+  }
+
+  let typeBlock="";
+  if(f.type==="rx"){
+    const rxInner='<div class="field"><label class="lbl">Lens type</label><div class="optgrid">'
+      +Object.keys(LENS_TYPES).map(k=>'<button class="opt'+(f.lensType===k?" on":"")+'" data-act="setv" data-k="lensType" data-v="'+k+'">'
+        +LENS_TYPES[k]+'</button>').join("")+'</div></div>'
+      +(f.lensType==="progressive"?'<div class="row2">'
+        +'<div class="field"><label class="lbl">Design</label><select class="inp" data-f="palDesign"><option value="">Select…</option>'+optsOf(PAL_DESIGNS,f.palDesign)+'</select></div>'
+        +'<div class="field"><label class="lbl">Corridor</label><select class="inp" data-f="corridor"><option value="">Select…</option>'+optsOf(CORRIDORS,f.corridor)+'</select></div></div>':'')
+      +(["bifocal","trifocal"].includes(f.lensType)?'<div class="field"><label class="lbl">Segment type</label>'
+        +'<select class="inp" data-f="segType"><option value="">Select…</option>'+optsOf(SEG_TYPES,f.segType)+'</select></div>':'')
+      +'<label class="lbl">Rx — tap a value to set it</label>'
+      +'<div class="rxhead"><span></span><span>SPH</span><span>CYL</span><span>AXIS</span><span>ADD</span></div>'
+      +[["od","OD"],["os","OS"]].map(x=>'<div class="rxrow-in"><span class="rxlbl">'+x[1]+'</span>'
+        +['sph','cyl','axis','add'].map(k=>{
+          const v=f[x[0]][k];
+          const disp = v===""||v==null ? "—" : WHEEL_CFG[k].fmt(Number(v));
+          return '<button class="rxin'+(v===""||v==null?" ph":"")+'" data-act="wheel" data-eye="'+x[0]+'" data-ek="'+k+'">'+disp+'</button>';
+        }).join("")+'</div>').join("")
+      +'<div class="row2" style="margin-top:10px">'
+      +[["od","Prism OD"],["os","Prism OS"]].map(x=>'<div class="field"><label class="lbl">'+x[1]+'</label><div style="display:flex;gap:6px">'
+        +'<button class="inp rxprismbtn" data-act="wheel" data-eye="'+x[0]+'" data-ek="prism">'
+        +(f[x[0]].prism===""||f[x[0]].prism==null?'<span class="ph">Δ —</span>':f[x[0]].prism+"Δ")+'</button>'
+        +'<select class="inp" style="flex:1;font-size:13px;padding:11px 6px" data-eye="'+x[0]+'" data-ek="base">'+optsOf(PRISM_BASE,f[x[0]].base)+'</select>'
+        +'</div></div>').join("")+'</div>'
+      +'<div class="row3">'
+      +'<div class="field"><label class="lbl">PD bin.</label><input class="inp" inputmode="decimal" placeholder="63" data-f="pdBin" value="'+esc(f.pdBin)+'"></div>'
+      +'<div class="field"><label class="lbl">PD R</label><input class="inp" inputmode="decimal" placeholder="31.5" data-f="pdOD" value="'+esc(f.pdOD)+'"></div>'
+      +'<div class="field"><label class="lbl">PD L</label><input class="inp" inputmode="decimal" placeholder="31.5" data-f="pdOS" value="'+esc(f.pdOS)+'"></div></div>'
+      +(needsSeg?'<div class="row2">'
+        +'<div class="field"><label class="lbl">Seg / fitting height</label><input class="inp" inputmode="decimal" placeholder="mm" data-f="segHeight" value="'+esc(f.segHeight)+'"></div>'
+        +'<div class="field"><label class="lbl">Near PD</label><input class="inp" inputmode="decimal" placeholder="mm" data-f="pdNear" value="'+esc(f.pdNear)+'"></div></div>':'');
+
+    const lensInner='<div class="field"><label class="lbl">Material / index</label><div class="optgrid">'
+      +MATERIALS.map(m=>'<button class="opt'+(f.material===m.k?" on":"")+'" data-act="setv" data-k="material" data-v="'+m.k+'">'
+        +m.label+'<small>'+m.idx+'</small></button>').join("")+'</div></div>'
+      +'<div class="field"><label class="lbl">Coatings</label><div class="chips">'
+      +COATINGS.map(c=>'<button class="chip'+(f.coatings.includes(c)?" on":"")+'" data-act="coat" data-v="'+esc(c)+'">'+c+'</button>').join("")+'</div></div>'
+      +'<div class="field"><label class="lbl">Photochromic / polarised</label><select class="inp" data-f="photo">'+optsOf(PHOTO_OPTS,f.photo)+'</select></div>'
+      +'<div class="row3"><div class="field"><label class="lbl">Tint</label>'
+      +'<select class="inp" data-f="tintType" data-act="rerender">'+optsOf(TINT_TYPES,f.tintType)+'</select></div>'
+      +(f.tintType!=="None"?'<div class="field"><label class="lbl">Colour</label><select class="inp" data-f="tintColor">'+optsOf(TINT_COLORS,f.tintColor)+'</select></div>'
+        +'<div class="field"><label class="lbl">Density %</label><input class="inp" inputmode="numeric" data-f="tintPct" value="'+esc(f.tintPct)+'"></div>':'')
+      +'</div>';
+
+    const frameInner='<div class="field"><label class="lbl">Frame type</label><div class="optgrid">'
+      +FRAME_TYPES.map(t=>'<button class="opt'+(f.frameType===t?" on":"")+'" data-act="setv" data-k="frameType" data-v="'+esc(t)+'">'+t+'</button>').join("")+'</div></div>'
+      +'<div class="field"><label class="lbl">Frame supply</label><select class="inp" data-f="frameSupply">'+optsOf(FRAME_SUPPLY,f.frameSupply)+'</select></div>'
+      +'<div class="row2"><div class="field"><label class="lbl">Edging</label><select class="inp" data-f="edging">'+optsOf(EDGING,f.edging)+'</select></div>'
+      +'<div class="field"><label class="lbl">Blank diameter</label><select class="inp" data-f="diameter">'+optsOf(DIAMETERS,f.diameter)+'</select></div></div>';
+
+    typeBlock=sect("rx","Prescription",rxInner)+sect("lens","Material & treatments",lensInner)+sect("frame","Frame & edging",frameInner);
+  } else if(f.type==="readers"){
+    typeBlock='<div class="row2"><div class="field"><label class="lbl">Power</label>'
+      +'<select class="inp" data-f="readerPower">'+optsOf(READER_POWERS,f.readerPower)+'</select></div>'
+      +'<div class="field"><label class="lbl">Style / model</label>'
+      +'<input class="inp" data-f="description" value="'+esc(f.description)+'" placeholder="e.g. Metal half-eye"></div></div>';
+  } else {
+    typeBlock='<div class="field"><label class="lbl">Description</label>'
+      +'<input class="inp" data-f="description" value="'+esc(f.description)+'" placeholder="Frame model, cases, cloths…"></div>';
+  }
+
+  openModal(sheetHead(isEdit?"Edit order":"Book order")
+    +(isEdit?"":'<div class="seg">'
+    +'<button class="'+(f.mode==="existing"?"on":"")+'" data-act="mode" data-v="existing">Existing customer</button>'
+    +'<button class="'+(f.mode==="new"?"on":"")+'" data-act="mode" data-v="new">New customer</button></div>')
+    +cust+'<div class="divider"></div>'
+    +'<div class="seg">'+[["rx","Rx lenses"],["readers","Ready readers"],["accessory","Frames / acc."]].map(x=>
+      '<button class="'+(f.type===x[0]?"on":"")+'" data-act="otype" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'
+    +'<div class="row2"><div class="field"><label class="lbl">Patient ref</label>'
+    +'<input class="inp" data-f="patientRef" value="'+esc(f.patientRef)+'" placeholder="Initials / ref"></div>'
+    +'<div class="field"><label class="lbl">Job / tray no.</label>'
+    +'<input class="inp" data-f="jobRef" value="'+esc(f.jobRef)+'" placeholder="e.g. 10428"></div></div>'
+    +typeBlock
+    +'<div class="row3">'
+    +'<div class="field"><label class="lbl">Qty</label><input class="inp" type="number" inputmode="numeric" data-f="qty" data-act="calc" value="'+esc(f.qty)+'"></div>'
+    +'<div class="field"><label class="lbl">Rate (excl GST)</label><input class="inp" type="number" inputmode="decimal" data-f="price" data-act="calc" value="'+esc(f.price)+'" placeholder="0.00"></div>'
+    +'<div class="field"><label class="lbl">Your cost</label><input class="inp" type="number" inputmode="decimal" data-f="cost" data-act="calc" value="'+esc(f.cost)+'" placeholder="0.00"></div></div>'
+    +'<div class="row2"><div class="field"><label class="lbl">GST rate</label>'
+    +'<select class="inp" data-f="gstRate" data-act="calc">'+GST_RATES.map(r=>
+      '<option value="'+r+'"'+(String(f.gstRate)===r?' selected':'')+'>'+r+'%</option>').join("")+'</select></div>'
+    +'<div class="field"><label class="lbl">HSN code</label>'
+    +'<input class="inp" data-f="hsn" value="'+esc(f.hsn)+'" placeholder="'+esc(defaultHsn(f.type))+'"></div></div>'
+    +'<div class="mprev" id="mprev">'+marginPreview(taxable,gst,inv,prof)+'</div>'
+    +'<div class="row2"><div class="field"><label class="lbl">Promised date</label>'
+    +'<input class="inp" type="date" data-f="promised" value="'+esc(f.promised)+'"></div>'
+    +'<div class="field"><label class="lbl">Priority</label><div style="display:flex;gap:6px">'
+    +[["standard","Std"],["urgent","Urgent"]].map(x=>'<button class="opt'+(f.priority===x[0]?" on":"")+(x[0]==="urgent"?" warn":"")
+      +'" style="flex:1;padding:11px 4px" data-act="setv" data-k="priority" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div></div></div>'
+    +'<label class="paidtog"><input type="checkbox" data-f="paid"'+(f.paid?" checked":"")+'> '+(isEdit?"Paid":"Already paid")+'</label>'
+    +'<div class="field"><label class="lbl">Notes</label>'
+    +'<input class="inp" data-f="notes" value="'+esc(f.notes)+'" placeholder="Lab instructions, delivery notes…"></div>'
+    +'<button class="btn-main'+(valid?"":" dis")+'" data-act="saveorder">'+ic("check",18)+' '+(isEdit?"Save changes":"Book order")+'</button>'
+    +(valid?'':'<p class="hint">'+(!custOK?"Select or name a customer":!rxOK?"Enter at least one sphere value":"Add a description")+'.</p>'), true);
+}
+function marginPreview(taxable,gst,inv,prof){
+  const c=prof>=0?"pos":"neg";
+  return '<div><div class="mlbl">Taxable</div><div class="mval">'+money(taxable)+'</div></div>'
+    +'<div><div class="mlbl">GST</div><div class="mval">'+money(gst)+'</div></div>'
+    +'<div><div class="mlbl">Invoice</div><div class="mval">'+money(inv)+'</div></div>'
+    +'<div><div class="mlbl">Margin</div><div class="mval '+c+'">'+(taxable?pct(prof,taxable).toFixed(0)+"%":"—")+'</div></div>';
+}
+
+/* ============ EXCEL EXPORT ============ */
+function exportExcel(){
+  if(!ST.orders.length&&!ST.expenses.length){alert("Nothing to export yet.");return;}
+  const sheets=[];
+
+  sheets.push({name:"Orders",rows:XL.objRows(ST.orders.map(o=>{const p=pOf(o.practice);
+    const tx=oTaxable(o),g=oGst(o),inter=isInterState(o);
+    return {
+    "Job no":o.jobRef||"","Date":fmtDate(o.createdAt),"Customer":o.practice,"GSTIN":p.gstin||"",
+    "City":p.city||"","District":p.district||"","State":p.state||"","Route":p.area||"","Patient ref":o.patientRef||"",
+    "Order type":o.type==="rx"?"Rx lenses":o.type==="readers"?"Ready readers":"Frames / accessories",
+    "Lens type":o.type==="rx"?(LENS_TYPES[o.lensType]||""):"",
+    "PAL design":o.palDesign||"","Corridor":o.corridor||"","Seg type":o.segType||"",
+    "OD SPH":dpt(o.od&&o.od.sph),"OD CYL":dpt(o.od&&o.od.cyl),"OD AXIS":axisFmt(o.od&&o.od.axis),"OD ADD":dpt(o.od&&o.od.add),
+    "OD PRISM":(o.od&&o.od.prism)||"","OD BASE":(o.od&&o.od.base!=="—")?o.od.base:"",
+    "OS SPH":dpt(o.os&&o.os.sph),"OS CYL":dpt(o.os&&o.os.cyl),"OS AXIS":axisFmt(o.os&&o.os.axis),"OS ADD":dpt(o.os&&o.os.add),
+    "OS PRISM":(o.os&&o.os.prism)||"","OS BASE":(o.os&&o.os.base!=="—")?o.os.base:"",
+    "PD bin":o.pdBin||"","PD OD":o.pdOD||"","PD OS":o.pdOS||"","Near PD":o.pdNear||"","Seg height":o.segHeight||"",
+    "Material":matLabel(o.material),"Coatings":(o.coatings||[]).join(", "),
+    "Photochromic":o.photo&&o.photo!=="None"?o.photo:"",
+    "Tint":o.tintType&&o.tintType!=="None"?(o.tintType+" "+o.tintColor+" "+o.tintPct+"%"):"",
+    "Frame type":o.frameType||"","Frame supply":o.frameSupply||"","Edging":o.edging||"","Blank dia":o.diameter||"",
+    "Reader power":o.readerPower||"","Description":o.description||"",
+    "HSN":o.hsn||"","Qty":oQty(o),"Rate excl GST":Number(o.price)||0,
+    "Taxable value":tx,"GST %":oRate(o),"CGST":inter?0:g/2,"SGST":inter?0:g/2,"IGST":inter?g:0,
+    "Total GST":g,"Invoice total":tx+g,
+    "Unit cost":Number(o.cost)||0,"Cost total":orderCost(o),"Profit":orderProfit(o),
+    "Margin %":Number(pct(orderProfit(o),tx).toFixed(1)),
+    "Supply":inter?"Inter-state":"Intra-state",
+    "Priority":o.priority==="urgent"?"URGENT":"Standard","Promised":fmtDay(o.promised),
+    "Stage":(STAGES[o.stage]||{}).label||o.stage,"Delivered":o.deliveredAt?fmtDay(o.deliveredAt):"",
+    "Turnaround days":o.deliveredAt?daysBetween(o.createdAt,o.deliveredAt):"",
+    "Cancelled":o.cancelled?"YES":"","Cancelled on":o.cancelledAt?fmtDate(o.cancelledAt):"",
+    "Paid":o.paid?"PAID":"UNPAID","Paid on":o.paidAt?fmtDate(o.paidAt):"",
+    "Days outstanding":o.paid?"":daysAgo(o.createdAt),
+    "Past terms":isPastTerms(o,p.terms)?"YES":"","Notes":o.notes||""};}))});
+
+  sheets.push({name:"Customers",rows:XL.objRows(ST.practices.map(p=>{
+    const co=ST.orders.filter(o=>o.practice===p.name&&!o.cancelled);
+    const billed=co.reduce((s,o)=>s+orderReceivable(o),0);
+    const tx=co.reduce((s,o)=>s+orderRevenue(o),0);
+    const cost=co.reduce((s,o)=>s+orderCost(o),0);
+    const paid=co.filter(o=>o.paid).reduce((s,o)=>s+orderReceivable(o),0);
+    return {"Customer":p.name,"GSTIN":p.gstin||"","Contact":p.contact||"","Mobile":p.phone||"","Email":p.email||"",
+      "Address 1":p.addr1||"","Address 2":p.addr2||"","City":p.city||"","District":p.district||"",
+      "State":p.state||"","PIN":p.pin||"","Delivery route":p.area||"","Terms (days)":p.terms||"",
+      "Total orders":co.length,"Total billed":billed,"Taxable value":tx,"Total cost":cost,
+      "Gross profit":tx-cost,"Margin %":Number(pct(tx-cost,tx).toFixed(1)),
+      "Total paid":paid,"Outstanding":billed-paid,"Notes":p.notes||""};}))});
+
+  const byCust={};
+  ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=o.practice;byCust[k]=byCust[k]||{n:0,billed:0,tx:0,cost:0,paid:0,oldest:null};
+    const c=byCust[k];c.n++;c.billed+=orderReceivable(o);c.tx+=orderRevenue(o);c.cost+=orderCost(o);
+    if(o.paid)c.paid+=orderReceivable(o);
+    else if(!c.oldest||new Date(o.createdAt)<new Date(c.oldest))c.oldest=o.createdAt;});
+  sheets.push({name:"By customer",rows:XL.objRows(Object.keys(byCust).map(k=>{const c=byCust[k],p=pOf(k);
+    return {Customer:k,City:p.city||"",District:p.district||"",State:p.state||"","Total orders":c.n,
+      "Total billed":c.billed,"Taxable value":c.tx,"Total cost":c.cost,"Gross profit":c.tx-c.cost,
+      "Margin %":Number(pct(c.tx-c.cost,c.tx).toFixed(1)),
+      "Total paid":c.paid,"Outstanding":c.billed-c.paid,
+      "Avg order value":Number((c.billed/c.n).toFixed(2)),
+      "Oldest unpaid (days)":c.oldest?daysAgo(c.oldest):""};}).sort((a,b)=>b["Total billed"]-a["Total billed"]))});
+
+  // GST summary by month x rate (cancelled orders never happened, so excluded from tax owed)
+  const gs={};
+  ST.orders.filter(o=>!o.cancelled).forEach(o=>{const key=monthKey(o.createdAt)+"|"+oRate(o);
+    gs[key]=gs[key]||{m:monthKey(o.createdAt),r:oRate(o),n:0,tx:0,cgst:0,sgst:0,igst:0};
+    const g=gs[key],t=oGst(o);g.n++;g.tx+=oTaxable(o);
+    if(isInterState(o))g.igst+=t;else{g.cgst+=t/2;g.sgst+=t/2;}});
+  sheets.push({name:"GST summary",rows:XL.objRows(Object.keys(gs).sort().map(k=>{const g=gs[k];
+    return {Month:monthLabel(g.m),"GST %":g.r,Orders:g.n,"Taxable value":g.tx,
+      CGST:g.cgst,SGST:g.sgst,IGST:g.igst,"Total tax":g.cgst+g.sgst+g.igst,
+      "Invoice total":g.tx+g.cgst+g.sgst+g.igst};}))});
+
+  sheets.push({name:"Expenses",rows:XL.objRows(ST.expenses.map(e=>({
+    Date:fmtDay(e.date),Category:e.category,Description:e.description||"",Amount:Number(e.amount)||0,Notes:e.notes||""})))});
+
+  const mm={};
+  ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=monthKey(o.createdAt);mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};
+    mm[k].tx+=orderRevenue(o);mm[k].gst+=oGst(o);mm[k].cost+=orderCost(o);mm[k].n++;});
+  ST.orders.filter(o=>o.paid&&o.paidAt&&!o.cancelled).forEach(o=>{const k=monthKey(o.paidAt);
+    mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};mm[k].cash+=orderReceivable(o);});
+  ST.expenses.forEach(e=>{const k=monthKey(e.date);mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};mm[k].exp+=Number(e.amount)||0;});
+  sheets.push({name:"Monthly summary",rows:XL.objRows(Object.keys(mm).sort().map(k=>{const m=mm[k],gp=m.tx-m.cost;
+    return {Month:monthLabel(k),Orders:m.n,"Revenue excl GST":m.tx,"GST charged":m.gst,
+      "Billed incl GST":m.tx+m.gst,"Cash collected":m.cash,"Cost of goods":m.cost,"Gross profit":gp,
+      "Margin %":Number(pct(gp,m.tx).toFixed(1)),Expenses:m.exp,"Net profit":gp-m.exp};}))});
+
+  const grp=(fn,col,name)=>{const g={};
+    ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=fn(o)||"—";g[k]=g[k]||{n:0,qty:0,tx:0,cost:0,owed:0};
+      g[k].n++;g[k].qty+=oQty(o);g[k].tx+=orderRevenue(o);g[k].cost+=orderCost(o);
+      if(!o.paid)g[k].owed+=orderReceivable(o);});
+    const rows=Object.keys(g).map(k=>{const x={};x[col]=k;x.Orders=g[k].n;x.Units=g[k].qty;
+      x["Revenue excl GST"]=g[k].tx;x.Cost=g[k].cost;x["Gross profit"]=g[k].tx-g[k].cost;
+      x["Margin %"]=Number(pct(g[k].tx-g[k].cost,g[k].tx).toFixed(1));x.Outstanding=g[k].owed;return x;})
+      .sort((a,b)=>b["Revenue excl GST"]-a["Revenue excl GST"]);
+    sheets.push({name:name,rows:XL.objRows(rows)});};
+  grp(o=>typeLabelOf(o),"Lens / product type","By lens type");
+  grp(o=>matLabel(o.material),"Material","By material");
+  grp(o=>cityOf(o.practice),"City","By city");
+  grp(o=>districtOf(o.practice),"District","By district");
+  grp(o=>stateOf(o.practice),"State","By state");
+  grp(o=>areaOf(o.practice),"Delivery route","By route");
+
+  const del=ST.orders.filter(o=>o.deliveredAt&&!o.cancelled);
+  const avgTat=del.length?del.reduce((s,o)=>s+daysBetween(o.createdAt,o.deliveredAt),0)/del.length:0;
+  const overdue=ST.orders.filter(o=>o.promised&&o.stage!=="delivered"&&!o.cancelled&&new Date(o.promised)<new Date());
+  const past=ST.orders.filter(o=>!o.cancelled&&isPastTerms(o,pOf(o.practice).terms));
+  const cancelledOrders=ST.orders.filter(o=>o.cancelled);
+  sheets.push({name:"Service",rows:XL.objRows([
+    {Metric:"Orders delivered",Value:del.length},
+    {Metric:"Average turnaround (days)",Value:Number(avgTat.toFixed(1))},
+    {Metric:"Orders past promised date",Value:overdue.length},
+    {Metric:"Value past promised date",Value:overdue.reduce((s,o)=>s+orderReceivable(o),0)},
+    {Metric:"Bills past payment terms",Value:past.length},
+    {Metric:"Value past payment terms",Value:past.reduce((s,o)=>s+orderReceivable(o),0)},
+    {Metric:"Urgent orders still open",Value:ST.orders.filter(o=>o.priority==="urgent"&&o.stage!=="delivered"&&!o.cancelled).length},
+    {Metric:"Cancelled orders",Value:cancelledOrders.length},
+    {Metric:"Cancelled orders value",Value:cancelledOrders.reduce((s,o)=>s+orderReceivable(o),0)}
+  ].concat(STAGE_ORDER.map(k=>({Metric:"At stage: "+STAGES[k].label,Value:ST.orders.filter(o=>o.stage===k&&!o.cancelled).length}))))});
+
+  downloadBlob(XL.build(sheets),"murali_report_"+new Date().toISOString().slice(0,10)+".xlsx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+}
+
+/* ============ BACKUP / RESTORE ============ */
+function backup(){
+  downloadBlob(JSON.stringify({app:"meridian",v:2,exported:new Date().toISOString(),
+    orders:ST.orders,practices:ST.practices,expenses:ST.expenses,biz:ST.biz},null,2),
+    "murali_backup_"+new Date().toISOString().slice(0,10)+".json","application/json");
+}
+function restore(file){
+  const r=new FileReader();
+  r.onload=async()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||!Array.isArray(d.orders)) throw new Error("bad file");
+      if(!confirm("Restore "+d.orders.length+" orders, "+(d.practices||[]).length+" customers and "
+        +(d.expenses||[]).length+" expenses? This REPLACES everything currently in the app.")) return;
+      ST.orders=d.orders||[];
+      ST.practices=(d.practices||[]).map(p=>Object.assign(emptyPractice(),p));
+      ST.expenses=d.expenses||[];
+      if(d.biz)ST.biz=Object.assign(emptyBiz(),d.biz);
+      await persist(); closeModal(); render();
+      alert("Restored successfully.");
+    }catch(e){ alert("That file could not be read as a Murali backup."); }
+  };
+  r.readAsText(file);
+}
+
+/* ============ MAIN RENDER ============ */
+function render(){
+  PM=pMap();
+  const open=ST.orders.filter(o=>o.stage!=="delivered"||!o.paid).length;
+  const urgent=ST.orders.filter(o=>o.priority==="urgent"&&o.stage!=="delivered").length;
+  let body="";
+  if(ST.nav==="orders")body=viewOrders();
+  else if(ST.nav==="practices")body=viewPractices();
+  else if(ST.nav==="reports")body=viewReports();
+  else body=viewMoney();
+
+  const warn = ST.storeMode==="memory"
+    ? '<div class="warnbar">'+ic("alert",13)+' This browser blocks storage for local files — data will be lost when you close the tab. Back up often, or host the file.</div>'
+    : "";
+
+  document.getElementById("app").innerHTML=warn
+    +'<div class="hdr"><div><div class="brandrow"><span class="mark">◎</span><h1 class="brand">Murali</h1></div>'
+    +'<p class="sub">'+esc(ST.biz.name||"Lens order book")+' · '+open+' open'
+    +(urgent>0?' · <span class="urg">'+urgent+' urgent</span>':'')+'</p></div>'
+    +'<div class="hdrbtns">'
+    +'<button class="btn-ghost" data-act="settings">'+ic("gear",17)+'</button>'
+    +'<button class="btn-dark" data-act="excel">'+ic("download",15)+' Excel</button></div></div>'
+    +body
+    +'<div class="fab-wrap"><div class="fab-wrap-inner"><button class="fab" data-act="fab">'+ic("plus",24)+'</button></div></div>'
+    +'<nav class="nav">'
+    +[["orders","Orders","clip"],["practices","Customers","building"],["reports","Reports","chart"],["money","Expenses","receipt"]]
+      .map(x=>'<button class="'+(ST.nav===x[0]?"on":"")+'" data-act="nav" data-v="'+x[0]+'">'+ic(x[2],19)+'<span>'+x[1]+'</span></button>').join("")
+    +'</nav>';
+}
+
+/* ============ EVENTS ============ */
+document.addEventListener("click",async function(ev){
+  const t=ev.target.closest("[data-act]");
+  if(!t) return;
+  const a=t.getAttribute("data-act"), v=t.getAttribute("data-v"), id=t.getAttribute("data-id");
+  if(a==="overlay"&&ev.target.closest("[data-stop]")) return;
+  if(a==="overlay"||a==="close"){ closeModal(); return; }
+
+  switch(a){
+    case "nav": ST.nav=v; render(); break;
+    case "filter": ST.filter=v; render(); break;
+    case "pipe": ST.filter=(ST.filter===v?"all":v); render(); break;
+    case "clearq": ST.query=""; render(); break;
+    case "clearpq": ST.pQuery=""; render(); break;
+    case "pdist": ST.pDist=v; render(); break;
+    case "period": ST.period=v; render(); break;
+    case "repview": ST.repView=v; render(); break;
+    case "sort": ST.sortBy=v; render(); break;
+    case "excel": exportExcel(); break;
+    case "backup": backup(); break;
+    case "restore": document.getElementById("restoreFile").click(); break;
+    case "settings": openSettings(); break;
+    case "fab": if(ST.nav==="money") openExpenseForm(); else openOrderForm(); break;
+
+    case "bsetv": {
+      const m=MODAL(); m.querySelectorAll("[data-bf]").forEach(el=>{ST.biz[el.getAttribute("data-bf")]=el.value;});
+      ST.biz[t.getAttribute("data-k")]=v; openSettings(); break; }
+    case "savebiz": {
+      const m=MODAL(); m.querySelectorAll("[data-bf]").forEach(el=>{
+        let val=el.value; if(el.getAttribute("data-bf")==="gstin") val=val.toUpperCase().trim();
+        ST.biz[el.getAttribute("data-bf")]=val;});
+      await persist(); closeModal(); render(); break; }
+
+    case "stage": {
+      const o=ST.orders.find(x=>x.id===id); if(!o)break;
+      o.stage=v; o.deliveredAt = v==="delivered" ? (o.deliveredAt||new Date().toISOString()) : null;
+      await persist(); render();
+      if(t.getAttribute("data-keep")) openDetail(id);
+      break; }
+    case "paid": {
+      const o=ST.orders.find(x=>x.id===id); if(!o)break;
+      o.paid=!o.paid; o.paidAt=o.paid?new Date().toISOString():null;
+      await persist(); render();
+      if(t.getAttribute("data-back")==="stmt") openStatement(t.getAttribute("data-v"));
+      else if(t.getAttribute("data-keep")) openDetail(id);
+      break; }
+    case "settle": {
+      const un=ST.orders.filter(o=>o.practice===v&&!o.paid);
+      if(!un.length)break;
+      if(!confirm("Mark all "+un.length+" unpaid orders as paid?"))break;
+      un.forEach(o=>{o.paid=true;o.paidAt=new Date().toISOString();});
+      await persist(); render(); openStatement(v); break; }
+    case "delorder": {
+      if(!confirm("Delete this order permanently? This cannot be undone — consider Cancel instead if you might need the record."))break;
+      ST.orders=ST.orders.filter(o=>o.id!==id); await persist(); closeModal(); render(); break; }
+    case "cancelorder": {
+      if(!confirm("Cancel this order? It stays in your records and reports marked as cancelled, but drops out of the open pipeline."))break;
+      ST.orders=ST.orders.map(o=>o.id===id?Object.assign({},o,{cancelled:true,cancelledAt:new Date().toISOString()}):o);
+      await persist(); closeModal(); render(); break; }
+    case "uncancel": {
+      ST.orders=ST.orders.map(o=>o.id===id?Object.assign({},o,{cancelled:false,cancelledAt:null}):o);
+      await persist(); openDetail(id); render(); break; }
+    case "editorder": {
+      const o=ST.orders.find(x=>x.id===id); if(!o)break;
+      closeModal(); openOrderFormEdit(o); break; }
+    case "delexp": {
+      if(!confirm("Delete this expense?"))break;
+      ST.expenses=ST.expenses.filter(e=>e.id!==id); await persist(); render(); break; }
+
+    case "detail": openDetail(id); break;
+    case "stmt": openStatement(v); break;
+    case "newpractice": openPracticeEditor(""); break;
+    case "editpractice": openPracticeEditor(v); break;
+
+    case "psetv": {
+      const m=MODAL(); m.querySelectorAll("[data-pf]").forEach(el=>{PE[el.getAttribute("data-pf")]=el.value;});
+      PE[t.getAttribute("data-k")]=v; renderPracticeEditor(); break; }
+    case "savepractice": {
+      const m=MODAL(); m.querySelectorAll("[data-pf]").forEach(el=>{
+        let val=el.value; if(el.getAttribute("data-pf")==="gstin") val=val.toUpperCase().trim();
+        PE[el.getAttribute("data-pf")]=val;});
+      const name=PE.name.trim(); if(!name)break;
+      const orig=PE.__orig;
+      const rec=Object.assign({},PE); delete rec.__orig; rec.name=name;
+      if(orig){
+        ST.practices=ST.practices.map(p=>p.name===orig?rec:p);
+        if(name!==orig) ST.orders.forEach(o=>{if(o.practice===orig)o.practice=name;});
+      } else {
+        if(ST.practices.some(p=>p.name.toLowerCase()===name.toLowerCase()))break;
+        ST.practices.push(rec);
+      }
+      ST.practices.sort((a,b)=>a.name.localeCompare(b.name));
+      await persist(); closeModal(); render(); break; }
+
+    case "saveexp": {
+      const amt=Number(document.getElementById("ex_amt").value);
+      if(!(amt>0)){alert("Enter an amount.");break;}
+      ST.expenses.unshift({id:uid(),date:document.getElementById("ex_date").value,
+        category:document.getElementById("ex_cat").value,description:document.getElementById("ex_desc").value,
+        amount:amt,notes:document.getElementById("ex_notes").value});
+      await persist(); closeModal(); render(); break; }
+
+    case "mode": grabForm(); FS.mode=v; renderOrderForm(); break;
+    case "otype": grabForm(); FS.type=v; FS.hsn=defaultHsn(v); renderOrderForm(); break;
+    case "sec": grabForm(); FS.sec[v]=!FS.sec[v]; renderOrderForm(); break;
+    case "setv": grabForm(); FS[t.getAttribute("data-k")]=v; renderOrderForm(); break;
+    case "npsetv": grabForm(); FS.np[t.getAttribute("data-k")]=v; renderOrderForm(); break;
+    case "coat": grabForm();
+      FS.coatings=FS.coatings.includes(v)?FS.coatings.filter(x=>x!==v):FS.coatings.concat([v]);
+      renderOrderForm(); break;
+    case "wheel": openWheelPicker(t.getAttribute("data-eye"),t.getAttribute("data-ek")); break;
+    case "wheeldone": closeWheelPicker(true); break;
+    case "wheeloverlay": if(ev.target.closest("[data-stop]")) break; closeWheelPicker(false); break;
+    case "wheelclear": {
+      FS[WP.eye][WP.key]="";
+      closeWheelPicker(false);
+      break; }
+    case "saveorder": {
+      grabForm();
+      const isEdit=!!FS.editId;
+      const name=isEdit?FS.practice:(FS.mode==="existing"?FS.practice:FS.np.name.trim());
+      if(!name){alert("Select or name a customer.");break;}
+      if(FS.type==="rx"&&FS.od.sph===""&&FS.os.sph===""){alert("Enter at least one sphere value.");break;}
+      if(!isEdit&&FS.mode==="new"){
+        if(ST.practices.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert("That customer already exists.");break;}
+        const rec=Object.assign({},FS.np,{name:name,gstin:(FS.np.gstin||"").toUpperCase().trim()});
+        ST.practices.push(rec); ST.practices.sort((a,b)=>a.name.localeCompare(b.name));
+        PM=pMap();
+      }
+      const fields={
+        type:FS.type,patientRef:FS.patientRef,jobRef:FS.jobRef,
+        lensType:FS.lensType,palDesign:FS.palDesign,corridor:FS.corridor,segType:FS.segType,
+        od:FS.od,os:FS.os,pdBin:FS.pdBin,pdOD:FS.pdOD,pdOS:FS.pdOS,pdNear:FS.pdNear,segHeight:FS.segHeight,
+        material:FS.material,coatings:FS.coatings,photo:FS.photo,
+        tintType:FS.tintType,tintColor:FS.tintColor,tintPct:FS.tintPct,
+        frameType:FS.frameType,frameSupply:FS.frameSupply,edging:FS.edging,diameter:FS.diameter,
+        readerPower:FS.readerPower,description:FS.description,
+        qty:FS.qty,price:FS.price,cost:FS.cost,gstRate:FS.gstRate,hsn:FS.hsn,
+        priority:FS.priority,promised:FS.promised,notes:FS.notes};
+      if(isEdit){
+        ST.orders=ST.orders.map(o=>{
+          if(o.id!==FS.editId) return o;
+          const wasPaid=o.paid, nowPaid=!!FS.paid;
+          return Object.assign({},o,fields,{
+            paid:nowPaid,
+            paidAt: nowPaid ? (wasPaid?o.paidAt:new Date().toISOString()) : null
+          });
+        });
+      } else {
+        ST.orders.unshift(Object.assign({id:uid(),createdAt:new Date().toISOString(),practice:name,
+          stage:"received",paid:!!FS.paid,paidAt:FS.paid?new Date().toISOString():null,deliveredAt:null},fields));
+      }
+      await persist(); closeModal(); ST.nav="orders"; render(); break; }
+  }
+});
+
+document.addEventListener("input",function(ev){
+  const el=ev.target;
+  if(el.getAttribute&&el.getAttribute("data-act")==="axisguard"){
+    let v=el.value.replace(/[^0-9]/g,"").slice(0,3);
+    if(v!==""&&Number(v)>180) v="180";
+    if(v!==el.value) el.value=v;
+  }
+  if(el.getAttribute&&el.getAttribute("data-act")==="phoneguard"){
+    const hadPlus = el.value.trim().startsWith("+");
+    let digits = el.value.replace(/[^0-9]/g,"");
+    if(digits.length>0 && digits.slice(0,2)==="91" && digits.length>10) digits=digits.slice(2); // drop leading 91 if it pushed past 10
+    if(digits.length>10) digits=digits.slice(0,10);
+    const v = hadPlus ? ("+91 "+digits) : digits;
+    if(v!==el.value) el.value=v;
+  }
+  if(el.getAttribute&&el.getAttribute("data-act")==="pinguard"){
+    let v=el.value.replace(/[^0-9]/g,"").slice(0,6);
+    if(v!==el.value) el.value=v;
+  }
+  if(el.id==="q"||el.id==="pq"){
+    if(el.id==="q")ST.query=el.value; else ST.pQuery=el.value;
+    const sc=window.scrollY; render(); window.scrollTo(0,sc);
+    const q=document.getElementById(el.id);
+    if(q){q.focus();try{q.setSelectionRange(q.value.length,q.value.length);}catch(e){}}
+    return;
+  }
+  if(FS&&el.getAttribute&&el.getAttribute("data-act")==="calc"){
+    grabForm();
+    const qty=Number(FS.qty)||0,tx=qty*(Number(FS.price)||0),cost=qty*(Number(FS.cost)||0);
+    const gst=tx*(Number(FS.gstRate)||0)/100;
+    const mp=document.getElementById("mprev"); if(mp)mp.innerHTML=marginPreview(tx,gst,tx+gst,tx-cost);
+  }
+});
+document.addEventListener("change",function(ev){
+  const el=ev.target;
+  if(el.getAttribute&&el.getAttribute("data-act")==="distsel"&&FS){grabForm();FS.dist=el.value;FS.practice="";renderOrderForm();return;}
+  if(el.getAttribute&&el.getAttribute("data-act")==="rerender"&&FS){grabForm();renderOrderForm();return;}
+  if(el.getAttribute&&el.getAttribute("data-act")==="calc"&&FS){
+    grabForm();
+    const qty=Number(FS.qty)||0,tx=qty*(Number(FS.price)||0),cost=qty*(Number(FS.cost)||0);
+    const gst=tx*(Number(FS.gstRate)||0)/100;
+    const mp=document.getElementById("mprev"); if(mp)mp.innerHTML=marginPreview(tx,gst,tx+gst,tx-cost);
+    return;
+  }
+  if(el.id==="restoreFile"&&el.files&&el.files[0]){restore(el.files[0]);el.value="";}
+});
+
+/* ============ INIT ============ */
+(async function(){
+  ST.storeMode=await Store.init();
+  const d=await Store.load();
+  if(d){
+    ST.orders=d.orders||[];
+    ST.practices=(d.practices||[]).map(p=>{
+      if(typeof p==="string") return Object.assign(emptyPractice(),{name:p});
+      const q=Object.assign(emptyPractice(),p);
+      if(!q.city&&p.town)q.city=p.town;          // migrate old UK field names
+      if(!q.pin&&p.postcode)q.pin=p.postcode;
+      return q;});
+    ST.expenses=d.expenses||[];
+    ST.biz=Object.assign(emptyBiz(),d.biz||{});
+  }
+  PM=pMap();
+  ST.ready=true;
+  render();
+})();
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
+</script>
+</body>
+</html>
