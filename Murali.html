@@ -31,8 +31,10 @@ input:focus,select:focus{outline:none;border-color:#0369A1!important}
 
 .warnbar{display:flex;align-items:center;gap:6px;justify-content:center;background:#92400E;color:#fff;font-size:11.5px;padding:calc(8px + env(safe-area-inset-top)) 14px 8px;text-align:center;line-height:1.4}
 .hdr{display:flex;justify-content:space-between;align-items:flex-start;padding:calc(20px + env(safe-area-inset-top)) 18px 14px;gap:10px}
-.brandrow{display:flex;align-items:center;gap:7px}
-.mark{color:#0369A1;font-size:16px}
+.brandrow{display:flex;align-items:center;gap:10px}
+.mark{display:flex;align-items:center;flex-shrink:0}
+.logobadge{background:linear-gradient(135deg,#0EA5E9,#075985);display:flex;align-items:center;justify-content:center;
+ flex-shrink:0;box-shadow:0 3px 8px -2px rgba(7,89,133,.45),inset 0 1px 0 rgba(255,255,255,.12)}
 h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .sub{margin:4px 0 0;font-size:12.5px;color:#64748B;font-weight:500}
 .urg{color:#DC2626;font-weight:700}
@@ -46,15 +48,18 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 
 .owed{margin:0 18px 14px;background:linear-gradient(150deg,#075985,#0C4A6E 70%);color:#fff;border-radius:18px;
  padding:18px 20px;display:flex;justify-content:space-between;align-items:center;
- box-shadow:0 10px 24px -8px rgba(3,105,161,.5)}
+ box-shadow:0 10px 24px -8px rgba(3,105,161,.5);animation:owedin .4s cubic-bezier(.22,.9,.35,1) backwards}
 .owed.exp{background:linear-gradient(150deg,#B45309,#78350F 70%);box-shadow:0 10px 24px -8px rgba(120,53,15,.45)}
+@keyframes owedin{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .owed-l{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
 .owed-v{font-size:28px;font-weight:800;margin-top:3px;letter-spacing:-.02em}
 
 .piperow{display:flex;gap:8px;padding:0 18px 14px}
 .pipe{flex:1;background:#fff;border:1.5px solid #EEF2F7;border-radius:15px;padding:13px 6px 12px;display:flex;
- flex-direction:column;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(15,23,42,.04);transition:transform .1s}
-.pipe:active{transform:scale(.97)}
+ flex-direction:column;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(15,23,42,.04);
+ transition:transform .1s;animation:cardin .32s cubic-bezier(.22,.9,.35,1) backwards}
+.pipe:nth-child(1){animation-delay:40ms}.pipe:nth-child(2){animation-delay:75ms}.pipe:nth-child(3){animation-delay:110ms}
+.pipe:active{transform:scale(.94)}
 .pipe.on{border-color:currentColor;box-shadow:0 2px 8px -2px rgba(3,105,161,.2)}
 .pipe-n{font-size:19px;font-weight:800;color:#0F172A;letter-spacing:-.01em}
 .pipe-l{font-size:9.6px;color:#64748B;text-align:center;line-height:1.25;font-weight:500}
@@ -72,9 +77,16 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .empty p{color:#64748B;font-size:14px;text-align:center;max-width:255px;line-height:1.5;margin:0}
 
 .card{background:#fff;border-radius:15px;box-shadow:0 1px 2px rgba(15,23,42,.04),0 1px 8px -4px rgba(15,23,42,.06);overflow:hidden;
- border:1px solid #EDF2F7}
+ border:1px solid #EDF2F7;animation:cardin .32s cubic-bezier(.22,.9,.35,1) backwards}
 .card-cancelled{opacity:.6}
 .card-top{display:flex;padding:14px 15px 13px;gap:12px;cursor:pointer;transition:background .1s}
+@keyframes cardin{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.list .card:nth-child(1),.list .custcard:nth-child(1){animation-delay:0ms}
+.list .card:nth-child(2),.list .custcard:nth-child(2){animation-delay:35ms}
+.list .card:nth-child(3),.list .custcard:nth-child(3){animation-delay:70ms}
+.list .card:nth-child(4),.list .custcard:nth-child(4){animation-delay:105ms}
+.list .card:nth-child(5),.list .custcard:nth-child(5){animation-delay:140ms}
+.list .card:nth-child(n+6),.list .custcard:nth-child(n+6){animation-delay:160ms}
 .card-top:active{background:#F8FAFC}
 .card-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
 .card-town{font-size:11px;color:#64748B;margin-top:3px;display:flex;align-items:center;gap:3px;font-weight:500}
@@ -94,7 +106,8 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .q-paid{color:#0369A1}.q-unpaid{color:#B45309}.q-det{color:#64748B}
 
 .custcard{background:#fff;border-radius:15px;padding:14px;display:flex;align-items:center;gap:12px;
- box-shadow:0 1px 2px rgba(15,23,42,.04),0 1px 8px -4px rgba(15,23,42,.06);border:1px solid #EDF2F7;cursor:pointer;transition:transform .1s}
+ box-shadow:0 1px 2px rgba(15,23,42,.04),0 1px 8px -4px rgba(15,23,42,.06);border:1px solid #EDF2F7;cursor:pointer;transition:transform .1s;
+ animation:cardin .32s cubic-bezier(.22,.9,.35,1) backwards}
 .custcard:active{transform:scale(.99)}
 .avatar{width:42px;height:42px;border-radius:13px;background:linear-gradient(150deg,#075985,#0C4A6E);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0}
 .cust-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
@@ -111,8 +124,9 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .fab{position:absolute;right:18px;bottom:calc(78px + env(safe-area-inset-bottom));background:#0369A1;color:#fff;
  width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;
  box-shadow:0 8px 20px rgba(3,105,161,.38),0 2px 6px rgba(3,105,161,.25);pointer-events:auto;
- transition:transform .12s ease,box-shadow .12s ease}
-.fab:active{transform:scale(.94);box-shadow:0 4px 12px rgba(3,105,161,.4)}
+ transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .12s ease}
+.fab:active{transform:scale(.9) rotate(-8deg);box-shadow:0 4px 12px rgba(3,105,161,.4)}
+.fab .ic{transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,.98);
  backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px);
  border-top:1px solid #E2E8F0;display:flex;padding:7px 4px max(8px,env(safe-area-inset-bottom));z-index:15;
@@ -125,6 +139,20 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;z-index:100;
  animation:fadein .15s ease}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
+.tabbody{}
+.tabbody-enter{animation:tabin .18s ease-out}
+@keyframes tabin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+#toast{position:fixed;left:50%;bottom:98px;transform:translateX(-50%) translateY(12px) scale(.92);
+ background:#0F172A;color:#fff;padding:12px 18px;border-radius:14px;display:flex;align-items:center;gap:8px;
+ font-size:13.5px;font-weight:700;box-shadow:0 10px 28px -6px rgba(15,23,42,.4);z-index:300;
+ opacity:0;pointer-events:none;transition:opacity .22s cubic-bezier(.34,1.56,.64,1),transform .22s cubic-bezier(.34,1.56,.64,1);
+ max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast.toast-show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+#toast.toast-ok{background:#0F172A}
+#toast.toast-ok svg{color:#4ADE80}
+#toast.toast-warn{background:#7C2D12}
+#toast.toast-warn svg{color:#FDBA74}
 .sheet{background:#F1F5F9;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:10px 18px 30px;max-height:93vh;overflow-y:auto;
  box-shadow:0 -8px 32px rgba(15,23,42,.18);animation:slideup .2s cubic-bezier(.32,.72,0,1)}
 @keyframes slideup{from{transform:translateY(24px);opacity:.6}to{transform:translateY(0);opacity:1}}
@@ -183,7 +211,8 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
 .track::-webkit-scrollbar{display:none}
 .wpad{height:72px}
 .witem{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;
- font-size:19px;font-variant-numeric:tabular-nums;color:#94A3B8;font-weight:600}
+ font-size:19px;font-variant-numeric:tabular-nums;color:#94A3B8;font-weight:600;
+ transition:color .12s ease,font-weight .12s ease,font-size .12s cubic-bezier(.34,1.56,.64,1)}
 .witem.wzero{color:#0369A1}
 .witem.wcenter{color:#0F172A;font-weight:800;font-size:24px}
 .selbar{position:absolute;top:72px;left:10px;right:10px;height:36px;background:#DBEAFE;border-radius:10px;
@@ -192,9 +221,12 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
 .fadetop{top:0;background:linear-gradient(#F8FAFCf5,#F8FAFC00)}
 .fadebot{bottom:0;background:linear-gradient(#F8FAFC00,#F8FAFCf5)}
 .wp-actions{display:flex;gap:8px;margin-top:16px}
-.wp-clear{flex:1;background:#F1F5F9;color:#64748B;padding:13px;border-radius:12px;font-weight:700;font-size:14px}
+.wp-clear{flex:1;background:#F1F5F9;color:#64748B;padding:13px;border-radius:12px;font-weight:700;font-size:14px;transition:transform .1s}
+.wp-clear:active{transform:scale(.96)}
 .wp-done{flex:2;background:#0369A1;color:#fff;padding:13px;border-radius:12px;font-weight:700;font-size:14px;
- display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px -4px rgba(3,105,161,.4)}
+ display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px -4px rgba(3,105,161,.4);
+ transition:transform .12s cubic-bezier(.34,1.56,.64,1)}
+.wp-done:active{transform:scale(.95)}
 .rxtbl{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:14px;border:1px solid #E2E8F0}
 .rxt-h{display:grid;grid-template-columns:50px 1fr 1fr 1fr 1fr 1.3fr;font-size:9.5px;font-weight:700;color:#64748B;text-align:center;letter-spacing:.05em;padding-bottom:6px;border-bottom:1px solid #EDF2F7}
 .rxt-r{display:grid;grid-template-columns:50px 1fr 1fr 1fr 1fr 1.3fr;font-size:12px;text-align:center;padding:8px 0;border-bottom:1px solid #F8FAFC;align-items:center}
@@ -216,10 +248,10 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
 
 .paidtog{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:500;padding:4px 0 14px;cursor:pointer}
 .paidtog input{width:18px;height:18px;accent-color:#0369A1}
-.btn-main{width:100%;background:#0369A1;color:#fff;padding:16px;border-radius:14px;font-size:16px;font-weight:700;
+.btn-main{width:100%;background:linear-gradient(135deg,#0284C7,#0369A1);color:#fff;padding:16px;border-radius:14px;font-size:16px;font-weight:700;
  display:flex;align-items:center;justify-content:center;gap:7px;margin-top:6px;letter-spacing:-.01em;
- box-shadow:0 4px 14px -4px rgba(3,105,161,.4);transition:transform .1s,box-shadow .1s}
-.btn-main:active{transform:scale(.98);box-shadow:0 2px 8px -3px rgba(3,105,161,.4)}
+ box-shadow:0 4px 14px -4px rgba(3,105,161,.45);transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .1s}
+.btn-main:active{transform:scale(.97);box-shadow:0 2px 8px -3px rgba(3,105,161,.4)}
 .btn-main.alt{background:#FEF3C7;color:#B45309;box-shadow:none}
 .btn-main.dis{opacity:.4;pointer-events:none;box-shadow:none}
 .btn-del{background:#F1F5F9;color:#94A3B8;padding:16px 19px;border-radius:14px;transition:transform .1s}
@@ -235,7 +267,13 @@ a.contactrow{color:#0369A1;font-weight:600}
 
 .kpigrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .kpigrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px}
-.kpi{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:12px 13px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+.kpi{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:12px 13px;box-shadow:0 1px 2px rgba(15,23,42,.03);
+ animation:cardin .28s cubic-bezier(.22,.9,.35,1) backwards}
+.kpigrid .kpi:nth-child(1),.kpigrid3 .kpi:nth-child(1){animation-delay:0ms}
+.kpigrid .kpi:nth-child(2),.kpigrid3 .kpi:nth-child(2){animation-delay:30ms}
+.kpigrid .kpi:nth-child(3),.kpigrid3 .kpi:nth-child(3){animation-delay:60ms}
+.kpigrid .kpi:nth-child(4),.kpigrid3 .kpi:nth-child(4){animation-delay:90ms}
+.kpigrid .kpi:nth-child(n+5){animation-delay:110ms}
 .kpi.big{grid-column:1/-1}
 .kpi-l{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
 .kpi-v{font-weight:800;margin-top:5px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-size:18px}
@@ -319,6 +357,33 @@ gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l
 save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'
 };
 const ic=(n,s)=>'<svg class="ic" width="'+(s||16)+'" height="'+(s||16)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(IP[n]||'')+'</svg>';
+
+// Brand mark: a glasses-frame silhouette (two lenses + bridge), matches the optical wholesaler theme.
+// color param lets it adapt to light/dark contexts (header vs install-prompt banner etc).
+function logoMark(size,color){
+  const s=size||22, c=color||"#0369A1";
+  return '<svg width="'+s+'" height="'+(s*0.65).toFixed(1)+'" viewBox="0 0 40 26" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<circle cx="10" cy="13" r="9.5" stroke="'+c+'" stroke-width="3.2"/>'
+    +'<circle cx="30" cy="13" r="9.5" stroke="'+c+'" stroke-width="3.2"/>'
+    +'<path d="M19.5 13h1" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>'
+    +'<path d="M0.5 10.5 Q0.5 13 2.5 13" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>'
+    +'<path d="M39.5 10.5 Q39.5 13 37.5 13" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>'
+    +'</svg>';
+}
+
+// Badge-tile logo: gradient rounded square containing the white glasses-frame mark.
+// Used in the header for a more established, product-like brand presence.
+function logoBadge(size){
+  const s=size||34, r=Math.round(s*0.3), iw=(s*0.58).toFixed(1), ih=(s*0.58*0.65).toFixed(1);
+  return '<div class="logobadge" style="width:'+s+'px;height:'+s+'px;border-radius:'+r+'px">'
+    +'<svg width="'+iw+'" height="'+ih+'" viewBox="0 0 40 26" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<circle cx="10" cy="13" r="9.5" stroke="#fff" stroke-width="3.4"/>'
+    +'<circle cx="30" cy="13" r="9.5" stroke="#fff" stroke-width="3.4"/>'
+    +'<path d="M19.5 13h1" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>'
+    +'<path d="M0.5 10.5 Q0.5 13 2.5 13" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>'
+    +'<path d="M39.5 10.5 Q39.5 13 37.5 13" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>'
+    +'</svg></div>';
+}
 
 /* ============ STORAGE (layered: IndexedDB -> localStorage -> memory) ============ */
 const Store=(function(){
@@ -1217,6 +1282,7 @@ function openWheelPicker(eye,key){
   renderWheelPicker();
 }
 function renderWheelPicker(){
+  if(!WP) return; // defensive: nothing to render if the picker state was cleared out from under us
   const cfg=WP.cfg;
   const isAxis = WP.key==="axis";
   const wheelsHtml = isAxis
@@ -1250,7 +1316,9 @@ function buildOneWheel(elId, vals, fmt, zeroVal, getCurrent, setCurrent){
     '<div class="witem'+(v===zeroVal?" wzero":"")+'" data-v="'+v+'">'+fmt(v)+'</div>').join("")+'<div class="wpad"></div>';
   let ticking=false;
   let ready=false; // ignore scroll events fired by initial browser layout, before we've explicitly positioned the wheel
+  function stillOpen(){ return !!WP && document.body.contains(el); }
   function updateCenter(commit){
+    if(!stillOpen()) return;
     const rect=el.getBoundingClientRect(); const cy=rect.top+rect.height/2;
     let closest=null,minD=1e9;
     el.querySelectorAll(".witem").forEach(it=>{
@@ -1261,6 +1329,7 @@ function buildOneWheel(elId, vals, fmt, zeroVal, getCurrent, setCurrent){
   }
   el.onscroll=function(){ if(!ticking){ ticking=true; requestAnimationFrame(function(){updateCenter();ticking=false;}); } };
   function positionWheel(){
+    if(!stillOpen()) return; // picker was closed/cleared before this timer fired — nothing to do
     const items=el.querySelectorAll(".witem");
     const cur=getCurrent();
     let target=null;
@@ -1658,6 +1727,33 @@ function restore(file){
   r.readAsText(file);
 }
 
+/* ============ TOAST ============ */
+let toastTimer=null, toastRemoveTimer=null;
+function showToast(msg,tone){
+  if(!document.body) return; // defensive: no-op if body isn't available yet
+  let el=document.getElementById("toast");
+  if(!el){
+    el=document.createElement("div");
+    el.id="toast";
+    document.body.appendChild(el);
+  }
+  clearTimeout(toastTimer);
+  clearTimeout(toastRemoveTimer);
+  el.className="toast toast-"+(tone||"ok")+" toast-in";
+  el.innerHTML=(tone==="warn"?ic("alert",16):ic("check",16))+'<span>'+esc(msg)+'</span>';
+  // force reflow so re-triggering the animation on rapid consecutive actions restarts cleanly
+  void el.offsetWidth;
+  el.classList.add("toast-show");
+  toastTimer=setTimeout(function(){
+    el.classList.remove("toast-show");
+    toastRemoveTimer=setTimeout(function(){
+      const cur=document.getElementById("toast");
+      // only remove if this is still the same element and no newer toast has reclaimed it
+      if(cur===el && el.parentNode && !el.classList.contains("toast-show")) el.remove();
+    },250);
+  },1800);
+}
+
 /* ============ MAIN RENDER ============ */
 function render(){
   PM=pMap();
@@ -1673,14 +1769,18 @@ function render(){
     ? '<div class="warnbar">'+ic("alert",13)+' This browser blocks storage for local files — data will be lost when you close the tab. Back up often, or host the file.</div>'
     : "";
 
+  const prevNav = document.getElementById("app").getAttribute("data-nav");
+  const navChanged = prevNav!==null && prevNav!==ST.nav;
+
+  document.getElementById("app").setAttribute("data-nav", ST.nav);
   document.getElementById("app").innerHTML=warn
-    +'<div class="hdr"><div><div class="brandrow"><span class="mark">◎</span><h1 class="brand">Murali</h1></div>'
+    +'<div class="hdr"><div><div class="brandrow">'+logoBadge(32)+'<h1 class="brand">Murali</h1></div>'
     +'<p class="sub">'+esc(ST.biz.name||"Lens order book")+' · '+open+' open'
     +(urgent>0?' · <span class="urg">'+urgent+' urgent</span>':'')+'</p></div>'
     +'<div class="hdrbtns">'
     +'<button class="btn-ghost" data-act="settings">'+ic("gear",17)+'</button>'
     +'<button class="btn-dark" data-act="excel">'+ic("download",15)+' Excel</button></div></div>'
-    +body
+    +'<div class="'+(navChanged?"tabbody tabbody-enter":"tabbody")+'">'+body+'</div>'
     +'<div class="fab-wrap"><div class="fab-wrap-inner"><button class="fab" data-act="fab">'+ic("plus",24)+'</button></div></div>'
     +'<nav class="nav">'
     +[["orders","Orders","clip"],["practices","Customers","building"],["reports","Reports","chart"],["money","Expenses","receipt"]]
@@ -1731,6 +1831,7 @@ document.addEventListener("click",async function(ev){
       const o=ST.orders.find(x=>x.id===id); if(!o)break;
       o.paid=!o.paid; o.paidAt=o.paid?new Date().toISOString():null;
       await persist(); render();
+      showToast(o.paid?"Marked as paid":"Marked as unpaid");
       if(t.getAttribute("data-back")==="stmt") openStatement(t.getAttribute("data-v"));
       else if(t.getAttribute("data-keep")) openDetail(id);
       break; }
@@ -1739,17 +1840,23 @@ document.addEventListener("click",async function(ev){
       if(!un.length)break;
       if(!confirm("Mark all "+un.length+" unpaid orders as paid?"))break;
       un.forEach(o=>{o.paid=true;o.paidAt=new Date().toISOString();});
-      await persist(); render(); openStatement(v); break; }
+      await persist(); render(); openStatement(v);
+      showToast("Account settled · "+un.length+" order"+(un.length!==1?"s":"")+" paid");
+      break; }
     case "delorder": {
       if(!confirm("Delete this order permanently? This cannot be undone — consider Cancel instead if you might need the record."))break;
       ST.orders=ST.orders.filter(o=>o.id!==id); await persist(); closeModal(); render(); break; }
     case "cancelorder": {
       if(!confirm("Cancel this order? It stays in your records and reports marked as cancelled, but drops out of the open pipeline."))break;
       ST.orders=ST.orders.map(o=>o.id===id?Object.assign({},o,{cancelled:true,cancelledAt:new Date().toISOString()}):o);
-      await persist(); closeModal(); render(); break; }
+      await persist(); closeModal(); render();
+      showToast("Order cancelled","warn");
+      break; }
     case "uncancel": {
       ST.orders=ST.orders.map(o=>o.id===id?Object.assign({},o,{cancelled:false,cancelledAt:null}):o);
-      await persist(); openDetail(id); render(); break; }
+      await persist(); openDetail(id); render();
+      showToast("Order restored");
+      break; }
     case "editorder": {
       const o=ST.orders.find(x=>x.id===id); if(!o)break;
       closeModal(); openOrderFormEdit(o); break; }
@@ -1799,9 +1906,10 @@ document.addEventListener("click",async function(ev){
       FS.coatings=FS.coatings.includes(v)?FS.coatings.filter(x=>x!==v):FS.coatings.concat([v]);
       renderOrderForm(); break;
     case "wheel": openWheelPicker(t.getAttribute("data-eye"),t.getAttribute("data-ek")); break;
-    case "wheeldone": closeWheelPicker(true); break;
-    case "wheeloverlay": if(ev.target.closest("[data-stop]")) break; closeWheelPicker(false); break;
+    case "wheeldone": if(WP) closeWheelPicker(true); break;
+    case "wheeloverlay": if(ev.target.closest("[data-stop]")) break; if(WP) closeWheelPicker(false); break;
     case "wheelclear": {
+      if(!WP) break;
       FS[WP.eye][WP.key]="";
       closeWheelPicker(false);
       break; }
@@ -1840,7 +1948,9 @@ document.addEventListener("click",async function(ev){
         ST.orders.unshift(Object.assign({id:uid(),createdAt:new Date().toISOString(),practice:name,
           stage:"received",paid:!!FS.paid,paidAt:FS.paid?new Date().toISOString():null,deliveredAt:null},fields));
       }
-      await persist(); closeModal(); ST.nav="orders"; render(); break; }
+      await persist(); closeModal(); ST.nav="orders"; render();
+      showToast(isEdit?"Order updated":"Order booked");
+      break; }
   }
 });
 
