@@ -26,7 +26,9 @@ input:focus,select:focus{outline:none;border-color:#0369A1!important}
 .num{font-variant-numeric:tabular-nums}
 .wrap{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:96px}
 .pad{padding:0 18px}
-.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;
+ -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent 100%);
+ mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent 100%)}
 .hide{display:none!important}
 
 .warnbar{display:flex;align-items:center;gap:6px;justify-content:center;background:#92400E;color:#fff;font-size:11.5px;padding:calc(8px + env(safe-area-inset-top)) 14px 8px;text-align:center;line-height:1.4}
@@ -65,6 +67,11 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .pipe-l{font-size:9.6px;color:#64748B;text-align:center;line-height:1.25;font-weight:500}
 
 .searchwrap{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E2E8F0;border-radius:13px;padding:11px 13px;margin-bottom:10px}
+.sortbtn{flex-shrink:0;display:flex;align-items:center;background:#fff;border:1px solid #E2E8F0;border-radius:13px;padding:0 14px;color:#334155}
+.sortbtn:active{background:#F8FAFC}
+.sortrow{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fff;border:1px solid #E2E8F0;
+ border-radius:13px;padding:14px 16px;margin-bottom:8px;font-size:14.5px;font-weight:700;color:#0F172A}
+.sortrow.on{border-color:#0369A1;background:#EFF6FF;color:#0369A1}
 .searchwrap input{flex:1;border:none;background:none;font-size:16px;color:#0F172A;min-width:0}
 .searchwrap input::placeholder{color:#94A3B8}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
@@ -98,6 +105,7 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap;letter-spacing:.01em}
 .tag-paid{font-size:11px;font-weight:700;color:#0369A1}
 .tag-unpaid{font-size:11px;font-weight:700;color:#B45309}
+.tag-partial{font-size:11px;font-weight:700;color:#7C3AED}
 .card-total{font-size:15px;font-weight:800;letter-spacing:-.01em}
 .qbar{display:flex;border-top:1px solid #EDF2F7}
 .qbar button{flex:1;padding:11px 6px;font-size:12.5px;font-weight:700;text-align:center;transition:background .1s}
@@ -113,6 +121,7 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .cust-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
 .cust-meta{font-size:12px;color:#64748B;margin-top:3px;font-weight:500}
 .cust-owed{font-size:12px;font-weight:700;color:#B45309;margin-top:4px}
+.cust-quiet{font-size:11.5px;font-weight:700;color:#0369A1;margin-top:4px;display:flex;align-items:center;gap:4px}
 .iconbtn{padding:6px;color:#94A3B8;border-radius:8px;transition:background .1s}
 .iconbtn:active{background:#EDF2F7}
 .addbtn{width:100%;background:#fff;border:1.5px dashed #CBD5E1;color:#0369A1;padding:12px;border-radius:13px;
@@ -260,8 +269,12 @@ select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:im
  box-shadow:0 4px 14px -4px rgba(3,105,161,.45);transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .1s}
 .btn-main:active{transform:scale(.97);box-shadow:0 2px 8px -3px rgba(3,105,161,.4)}
 .btn-main.alt{background:#FEF3C7;color:#B45309;box-shadow:none}
+.btn-main.del{background:#DC2626;box-shadow:0 6px 16px -4px rgba(220,38,38,.4)}
 .btn-main.dis{opacity:.4;pointer-events:none;box-shadow:none}
-.btn-del{background:#F1F5F9;color:#94A3B8;padding:16px 19px;border-radius:14px;transition:transform .1s}
+.btn-sec{width:100%;background:#fff;border:1.5px solid #E2E8F0;color:#0F172A;padding:14px;border-radius:14px;
+ font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}
+.btn-sec:active{background:#F8FAFC}
+.btn-del{background:#FEE2E2;color:#DC2626;padding:16px 19px;border-radius:14px;transition:transform .1s;font-weight:700;border:1.5px solid #FECACA}
 .btn-del:active{transform:scale(.96)}
 .hint{font-size:11.5px;color:#94A3B8;text-align:center;margin-top:9px;line-height:1.4}
 .hint-btn{width:100%;font-size:12px;color:#94A3B8;text-align:center;margin-top:12px;padding:4px;text-decoration:underline;text-underline-offset:2px}
@@ -299,6 +312,13 @@ a.contactrow{color:#0369A1;font-weight:600}
 .barlbl{font-size:12.5px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .barval{font-size:12.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .barsub{font-size:11px;font-weight:500;color:#94A3B8}
+.legrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F1F5F9}
+.legrow:last-child{border-bottom:none;padding-bottom:0}
+.legdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.leg-k{font-size:13px;font-weight:700;color:#0F172A}
+.leg-s{font-size:11px;color:#94A3B8;font-weight:500;margin-top:1px}
+.leg-v{font-size:13px;font-weight:700;color:#0F172A;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.leg-pct{font-size:10.5px;color:#94A3B8;font-weight:600}
 .bartrack{height:7px;background:#EEF2F7;border-radius:4px;overflow:hidden}
 .barfill{height:100%;border-radius:4px}
 
@@ -361,22 +381,12 @@ mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 5L2 7"/
 timer:'<path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/>',
 up:'<path d="m5 12 7-7 7 7M12 19V5"/>',down:'<path d="M12 5v14M19 12l-7 7-7-7"/>',
 gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
-save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'
+save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+sort:'<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>',
+message:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+share:'<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/>'
 };
 const ic=(n,s)=>'<svg class="ic" width="'+(s||16)+'" height="'+(s||16)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(IP[n]||'')+'</svg>';
-
-// Brand mark: a glasses-frame silhouette (two lenses + bridge), matches the optical wholesaler theme.
-// color param lets it adapt to light/dark contexts (header vs install-prompt banner etc).
-function logoMark(size,color){
-  const s=size||22, c=color||"#0369A1";
-  return '<svg width="'+s+'" height="'+(s*0.65).toFixed(1)+'" viewBox="0 0 40 26" fill="none" xmlns="http://www.w3.org/2000/svg">'
-    +'<circle cx="10" cy="13" r="9.5" stroke="'+c+'" stroke-width="3.2"/>'
-    +'<circle cx="30" cy="13" r="9.5" stroke="'+c+'" stroke-width="3.2"/>'
-    +'<path d="M19.5 13h1" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>'
-    +'<path d="M0.5 10.5 Q0.5 13 2.5 13" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>'
-    +'<path d="M39.5 10.5 Q39.5 13 37.5 13" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"/>'
-    +'</svg>';
-}
 
 // Badge-tile logo: gradient rounded square containing the white glasses-frame mark.
 // Used in the header for a more established, product-like brand presence.
@@ -543,12 +553,22 @@ function downloadBlob(data,filename,mime){
 
 /* ============ REFERENCE DATA ============ */
 const STAGES={
- received:{label:"Order received",short:"Received",color:"#64748B",bg:"#F1F5F9"},
- lab:{label:"Awaiting stock / lab",short:"At lab",color:"#B45309",bg:"#FEF3C7"},
- ready:{label:"Ready to dispatch",short:"Ready",color:"#0369A1",bg:"#DBEAFE"},
- out:{label:"Out for delivery",short:"Out",color:"#7C3AED",bg:"#EDE9FE"},
+ received:{label:"Order placed",short:"Placed",color:"#64748B",bg:"#F1F5F9"},
+ lab:{label:"At lab",short:"At lab",color:"#B45309",bg:"#FEF3C7"},
+ ready:{label:"Received from lab",short:"Shipment received",color:"#0369A1",bg:"#DBEAFE"},
+ out:{label:"Dispatched",short:"Dispatched",color:"#7C3AED",bg:"#EDE9FE"},
  delivered:{label:"Delivered",short:"Delivered",color:"#15803D",bg:"#DCFCE7"}};
 const STAGE_ORDER=["received","lab","ready","out","delivered"];
+// How an order was sent out. Kept as a sub-field of the single "out" stage (not separate
+// stages per method) so pipeline counts and reports always show one "Dispatched" bucket,
+// regardless of whether it went by bus, courier, or the shop's own delivery staff.
+const DISPATCH_METHODS=[["bus","Bus"],["courier","Courier"],["staff","Our staff"]];
+function dispatchDetailLabel(method){
+  return method==="courier"?"Courier name / tracking no.":method==="staff"?"Staff member":"Bus name / number";
+}
+function dispatchDetailPlaceholder(method){
+  return method==="courier"?"e.g. Blue Dart, AWB 123456":method==="staff"?"e.g. Ramesh":"e.g. APSRTC 442, Vijayawada route";
+}
 const LENS_TYPES={sv:"Single vision",progressive:"Progressive (PAL)",bifocal:"Bifocal",trifocal:"Trifocal",office:"Office / computer"};
 const PAL_DESIGNS=["Standard","Premium","Freeform / digital"];
 const CORRIDORS=["11mm","13mm","14mm","15mm","17mm"];
@@ -581,7 +601,9 @@ const READER_POWERS=["+1.00","+1.25","+1.50","+1.75","+2.00","+2.25","+2.50","+2
 const EXPENSE_CATS=["Stock purchase","Lab / surfacing charges","Delivery & transport","Rent & utilities","Salaries & wages",
  "Equipment","Marketing","Insurance","GST & taxes paid","Other"];
 const TERMS_OPTS=["0","7","15","30","45","60"];
+const SORT_OPTS=[["date","Date placed"],["customer","Customer"],["city","City"]];
 const GST_RATES=["0","5","12","18","28"];
+const DISCOUNT_TYPES=[["none","None"],["pct","% off"],["flat","₹ flat"]];
 // Used to power native browser autocomplete on email fields (see EMAIL_DOMAINS-driven <datalist> below).
 const EMAIL_DOMAINS=["gmail.com","yahoo.com","yahoo.co.in","outlook.com","hotmail.com","icloud.com","rediffmail.com"];
 const STATES=["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana",
@@ -703,7 +725,34 @@ function applyGstinUI(el){
 function emailFieldHtml(dataAttr,key,value,id){
   return '<input class="inp" id="'+id+'" data-'+dataAttr+'="'+key+'" data-act="emailguard" type="email" '
     +'value="'+esc(value)+'" placeholder="orders@…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">'
+    +'<p class="err hide" id="'+id+'_err">Email addresses can\'t contain spaces — please remove them.</p>'
     +'<div class="chips hide" id="'+id+'_sugg" style="margin-top:6px"></div>';
+}
+// Flags (rather than silently stripping) any whitespace in an email field — spaces are
+// never valid in an email address, and silently deleting what someone typed could hide a
+// typo instead of surfacing it, so this asks them to fix it themselves.
+function emailSpaceCheck(el){
+  const bad=/\s/.test(el.value);
+  const errEl=document.getElementById(el.id+"_err");
+  if(errEl) errEl.classList.toggle("hide",!bad);
+  el.style.borderColor=bad?"#DC2626":"";
+  return !bad;
+}
+// The customer editor's Save button needs to stay in sync with BOTH the name-duplicate
+// check and the email-space check at once — recomputing from scratch here (rather than
+// having each guard flip the button independently) avoids one check's "valid" overwriting
+// the other's "invalid".
+function practiceFormValid(){
+  if(!PE) return true;
+  const nameEl=document.getElementById("pf_name"), emailEl=document.getElementById("email_pf");
+  const name=(nameEl?nameEl.value:"").trim();
+  const dup=name&&name.toLowerCase()!==PE.__orig.toLowerCase()&&ST.practices.some(p=>p.name.toLowerCase()===name.toLowerCase());
+  const emailBad=emailEl&&/\s/.test(emailEl.value);
+  return !!(name&&!dup&&!emailBad);
+}
+function refreshPracticeSaveBtn(){
+  const btn=document.getElementById("pf_save");
+  if(btn) btn.classList.toggle("dis",!practiceFormValid());
 }
 function updateEmailSuggestions(el){
   const box=document.getElementById(el.id+"_sugg");
@@ -725,7 +774,17 @@ function gstinFieldExtra(id){
 
 /* ---- money maths (GST-aware) ---- */
 const oQty=o=>Number(o.qty)||0;
-const oTaxable=o=>oQty(o)*(Number(o.price)||0);          // value excl GST
+const oGross=o=>oQty(o)*(Number(o.price)||0);            // taxable value BEFORE any discount
+// Optional per-order discount, applied before GST (standard practice — GST is charged on the
+// discounted value). Absent/"none" on every pre-existing order, so nothing already saved changes.
+const oDiscount=o=>{
+  if(!o.discountType||o.discountType==="none") return 0;
+  const g=oGross(o), val=Number(o.discountValue)||0;
+  if(o.discountType==="pct") return Math.min(g,Math.max(0,g*val/100));
+  if(o.discountType==="flat") return Math.min(g,Math.max(0,val));
+  return 0;
+};
+const oTaxable=o=>oGross(o)-oDiscount(o);                // value excl GST, AFTER discount
 const oRate=o=>{const r=Number(o.gstRate);return isFinite(r)?r:0;};
 const oGst=o=>oTaxable(o)*oRate(o)/100;                  // tax amount
 const oInvoice=o=>oTaxable(o)+oGst(o);                   // what the shop owes
@@ -733,6 +792,13 @@ const orderRevenue=o=>oTaxable(o);                       // P&L revenue, excl GS
 const orderReceivable=o=>oInvoice(o);                    // billed / outstanding
 const orderCost=o=>oQty(o)*(Number(o.cost)||0);
 const orderProfit=o=>oTaxable(o)-orderCost(o);
+// Partial payments: o.paid stays the single source of truth for "fully settled" (kept in sync
+// everywhere it's changed), while o.paidAmount tracks a running total for orders that have
+// received SOME money but not all of it. orderPaidAmt/orderOutstanding are the only two
+// functions anything should use to reason about amounts — everywhere that used to assume
+// "unpaid = orderReceivable(o)" now correctly reflects a partial balance instead.
+const orderPaidAmt=o=>o.paid?orderReceivable(o):Math.min(orderReceivable(o),Number(o.paidAmount)||0);
+const orderOutstanding=o=>Math.max(0,orderReceivable(o)-orderPaidAmt(o));
 // intra-state -> CGST+SGST, inter-state -> IGST
 const isInterState=o=>{const bs=(ST.biz&&ST.biz.state)||"",cs=(PM[o.practice]&&PM[o.practice].state)||"";
  if(!bs||!cs)return false; return bs!==cs;};
@@ -762,12 +828,51 @@ function fyLabel(k){const n=new Date();let s=fyStart(n);if(k==="fy1")s-=1;
 const inRange=(iso,r)=>{if(!iso||!r)return false;const t=new Date(iso).getTime();return t>=r[0].getTime()&&t<r[1].getTime();};
 const rangeDays=r=>Math.max(1,Math.round((r[1]-r[0])/86400000));
 function isPastTerms(o,terms){if(o.paid)return false;const t=Number(terms);if(isNaN(t))return false;return daysAgo(o.createdAt)>t;}
+// "Promised by" is a date-only field (no time), so it should only count as late once that
+// whole day has passed — comparing it against the exact current timestamp (as opposed to
+// today's date) would wrongly flag anything promised for today as late from midnight onward,
+// even if it was booked minutes ago. Plain string comparison on YYYY-MM-DD sidesteps timezone
+// parsing quirks entirely (new Date("YYYY-MM-DD") parses as UTC midnight, which is what
+// caused the false positive).
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function isPastPromised(o){return !!(o.promised&&o.stage!=="delivered"&&!o.cancelled&&o.promised<todayStr());}
+
+// How many days of no new orders counts as "gone quiet" for the win-back filter on the
+// Customers screen. A plain threshold rather than a per-customer prediction — transparent
+// and easy to reason about, instead of a black-box "AI thinks they'll reorder" guess.
+const WINBACK_DAYS=60;
+function custStats(p){
+  const co=ST.orders.filter(o=>o.practice===p.name&&!o.cancelled);
+  const billed=co.reduce((s,o)=>s+orderReceivable(o),0);
+  const paidAmt=co.reduce((s,o)=>s+orderPaidAmt(o),0);
+  const unpaid=co.filter(o=>orderOutstanding(o)>0);
+  const oldest=unpaid.reduce((m,o)=>!m||new Date(o.createdAt)<new Date(m)?o.createdAt:m,null);
+  const lastOrder=co.reduce((m,o)=>!m||new Date(o.createdAt)>new Date(m)?o.createdAt:m,null);
+  return {jobs:co.length,billed:billed,paid:paidAmt,owed:billed-paidAmt,unpaidCount:unpaid.length,
+    oldest:oldest,lastOrder:lastOrder,quietDays:lastOrder?daysAgo(lastOrder):null};
+}
+// Normalises a stored phone number into the plain digits-with-country-code format wa.me
+// needs (no +, no spaces, no leading 0). Assumes India (91) when a bare 10-digit mobile
+// number is stored, since that's what this app's phone field is set up for.
+function waDigits(phone){
+  let d=(phone||"").replace(/[^0-9]/g,"");
+  if(d.length===10) d="91"+d;
+  else if(d.length===11&&d[0]==="0") d="91"+d.slice(1);
+  return d.length>=11?d:"";
+}
+function reminderText(p,stats){
+  const who=p.contact||p.name;
+  return "Hi "+who+", this is a reminder from "+(ST.biz.name||"us")+" — "+money(stats.owed)+" is outstanding on "
+    +stats.unpaidCount+" order"+(stats.unpaidCount!==1?"s":"")
+    +(stats.oldest?" (oldest since "+fmtDate(stats.oldest)+", "+daysAgo(stats.oldest)+"d)":"")
+    +". Kindly arrange payment at your convenience. Thank you!";
+}
 
 /* ============ STATE ============ */
 const ST={
   orders:[], practices:[], expenses:[], biz:emptyBiz(),
-  nav:"orders", filter:"all", query:"", period:"m0", repView:"overview", sortBy:"value",
-  pDist:"All", pQuery:"", ready:false, storeMode:"memory"
+  nav:"orders", filter:"all", query:"", period:"m0", repView:"overview", sortBy:"value", orderSort:"date",
+  pDist:"All", pQuery:"", pFilter:"all", discView:"code", ready:false, storeMode:"memory"
 };
 const pMap=()=>{const m={};ST.practices.forEach(p=>m[p.name]=p);return m;};
 let PM={};
@@ -786,7 +891,9 @@ async function persist(){
 function bar(label,value,max,sub,color,fmt){
   const p=max>0?Math.max(2,(value/max)*100):0;
   const f=fmt||money0;
-  return '<div class="barrow"><div class="bartop"><span class="barlbl">'+esc(label)+'</span>'
+  return '<div class="barrow"><div class="bartop"><span class="barlbl">'
+    +(color?'<span class="legdot" style="display:inline-block;background:'+color+';margin-right:7px;vertical-align:middle"></span>':"")
+    +esc(label)+'</span>'
     +'<span class="barval">'+f(value)+(sub?' <span class="barsub">· '+esc(sub)+'</span>':'')+'</span></div>'
     +'<div class="bartrack"><div class="barfill" style="width:'+p+'%;background:'+(color||"#0369A1")+'"></div></div></div>';
 }
@@ -840,11 +947,57 @@ function kpi(label,value,cls,big,delta){
   return '<div class="kpi'+(big?" big":"")+'"><div class="kpi-l">'+esc(label)+'</div>'
     +'<div class="kpi-v '+(cls||"")+'">'+value+'</div>'+d+'</div>';
 }
-function groupCard(title,rows,color,fmt,empty){
+function groupCard(title,rows,fmt,empty){
   const max=Math.max(1,...rows.map(r=>r.v));
   return '<div class="repcard"><div class="rep-t">'+esc(title)+'</div>'
-    +(rows.length?rows.map(r=>bar(r.k,r.v,max,r.sub,color,fmt)).join(""):'<div class="rep-e">'+(empty||"No data in this period.")+'</div>')
+    +(rows.length?rows.map((r,i)=>bar(r.k,r.v,max,r.sub,PALETTE[i%PALETTE.length],fmt)).join(""):'<div class="rep-e">'+(empty||"No data in this period.")+'</div>')
     +'</div>';
+}
+// A categorical palette — used when different SEGMENTS of the same chart need to be told
+// apart at a glance (e.g. which discount code is which), as opposed to `bar()`/`groupCard`'s
+// single colour, which is meant for a ranked list where every row is the same kind of thing.
+const PALETTE=["#0369A1","#B45309","#0EA5E9","#7C3AED","#DB2777","#16A34A","#334155","#EA580C"];
+function donutChart(rows,size){
+  size=size||136;
+  const total=rows.reduce((s,r)=>s+r.v,0)||1;
+  const strokeW=Math.max(9,size*0.135), r=size/2-strokeW/2, cx=size/2, cy=size/2, circ=2*Math.PI*r;
+  let offset=0;
+  const segs=rows.map((row,i)=>{
+    const dash=Math.max(0,(row.v/total)*circ - (rows.length>1?1.5:0)); // tiny gap between segments
+    const el='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+PALETTE[i%PALETTE.length]+'" stroke-width="'+strokeW+'" '
+      +'stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-dashoffset="'+(-offset)+'" stroke-linecap="round" '
+      +'transform="rotate(-90 '+cx+' '+cy+')"/>';
+    offset+=(row.v/total)*circ;
+    return el;
+  }).join("");
+  const fMain=Math.max(11,Math.round(size*0.11)), fSub=Math.max(7,Math.round(size*0.066));
+  return '<svg viewBox="0 0 '+size+' '+size+'" width="'+size+'" height="'+size+'">'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#EEF2F7" stroke-width="'+strokeW+'"/>'
+    +segs
+    +'<text x="'+cx+'" y="'+(cy-fMain*0.15)+'" text-anchor="middle" font-size="'+fMain+'" font-weight="800" fill="#0F172A">'+esc(money0(total))+'</text>'
+    +'<text x="'+cx+'" y="'+(cy+fMain*0.85)+'" text-anchor="middle" font-size="'+fSub+'" font-weight="700" fill="#94A3B8" letter-spacing="0.04em">TOTAL</text>'
+    +'</svg>';
+}
+// One compact card for a total that can be sliced two different ways (e.g. discount amount
+// by code, or the same amount by type) — a toggle switches the slice instead of showing two
+// full-size donuts back to back for what's ultimately the same underlying total. The donut
+// sits inline beside its legend rather than centered above a full-width list, which is the
+// standard compact layout for category-breakdown widgets (Apple Card/Mint-style spend views).
+function discountBreakdownCard(byCode,byType){
+  if(!byCode.length&&!byType.length) return "";
+  const view=ST.discView==="type"?byType:byCode;
+  const total=view.reduce((s,r)=>s+r.v,0)||1;
+  const legend=view.map((r,i)=>'<div class="legrow"><span class="legdot" style="background:'+PALETTE[i%PALETTE.length]+'"></span>'
+    +'<span class="flex1"><div class="leg-k">'+esc(r.k)+'</div>'+(r.sub?'<div class="leg-s">'+esc(r.sub)+'</div>':'')+'</span>'
+    +'<span class="leg-v">'+money0(r.v)+' <span class="leg-pct">'+pct(r.v,total).toFixed(0)+'%</span></span></div>').join("");
+  return '<div class="repcard">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px">'
+    +'<div class="rep-t" style="margin-bottom:0">Discounts breakdown</div>'
+    +'<div class="chips"><button class="chip'+(ST.discView!=="type"?" on":"")+'" data-act="discview" data-v="code">By code</button>'
+    +'<button class="chip'+(ST.discView==="type"?" on":"")+'" data-act="discview" data-v="type">By type</button></div></div>'
+    +'<div style="display:flex;gap:16px;align-items:center">'
+    +'<div style="flex-shrink:0">'+donutChart(view,92)+'</div>'
+    +'<div style="flex:1;min-width:0">'+legend+'</div></div></div>';
 }
 function periodChips(){
   return '<div class="chips scrollx" style="margin-bottom:12px">'+PERIODS.map(p=>{
@@ -860,7 +1013,7 @@ function viewOrders(){
     lab:active.filter(x=>x.stage==="lab"||x.stage==="received").length,
     ready:active.filter(x=>x.stage==="ready").length,
     out:active.filter(x=>x.stage==="out").length,
-    owed:active.filter(x=>!x.paid).reduce((s,x)=>s+orderReceivable(x),0)
+    owed:active.reduce((s,x)=>s+orderOutstanding(x),0)
   };
   let list=o;
   const f=ST.filter;
@@ -868,10 +1021,16 @@ function viewOrders(){
   else if(f==="urgent")list=list.filter(x=>x.priority==="urgent"&&x.stage!=="delivered"&&!x.cancelled);
   else if(f==="labgrp")list=list.filter(x=>(x.stage==="lab"||x.stage==="received")&&!x.cancelled);
   else if(f==="cancelled")list=list.filter(x=>x.cancelled);
-  else if(f!=="all")list=list.filter(x=>x.stage===f&&!x.cancelled);
+  else if(f==="all")list=list.filter(x=>x.stage!=="delivered"&&!x.cancelled); // "Open" — the default view; completed/cancelled only show up when their own chip is tapped
+  else list=list.filter(x=>x.stage===f&&!x.cancelled);
   if(ST.query.trim()){const q=ST.query.toLowerCase();
     list=list.filter(x=>(x.practice||"").toLowerCase().includes(q)||(x.patientRef||"").toLowerCase().includes(q)
       ||(x.jobRef||"").toLowerCase().includes(q)||cityOf(x.practice).toLowerCase().includes(q));}
+  list=list.slice().sort((a,b)=>{
+    if(ST.orderSort==="customer") return a.practice.localeCompare(b.practice)||new Date(b.createdAt)-new Date(a.createdAt);
+    if(ST.orderSort==="city") return cityOf(a.practice).localeCompare(cityOf(b.practice))||new Date(b.createdAt)-new Date(a.createdAt);
+    return new Date(b.createdAt)-new Date(a.createdAt); // date placed, most recent first
+  });
 
   const pipes=[["labgrp",stats.lab,"At lab / awaiting",STAGES.lab.color,"flask"],
     ["ready",stats.ready,"Ready to dispatch",STAGES.ready.color,"pkg"],
@@ -883,16 +1042,24 @@ function viewOrders(){
       '<button class="pipe'+(f===p[0]?" on":"")+'" style="color:'+p[3]+'" data-act="pipe" data-v="'+p[0]+'">'
       +ic(p[4],18)+'<span class="pipe-n">'+p[1]+'</span><span class="pipe-l">'+p[2]+'</span></button>').join("")+'</div>'
     +'<div class="pad">'
-    +'<div class="searchwrap">'+ic("search",15)+'<input id="q" placeholder="Shop, city, patient or job no." value="'+esc(ST.query)+'">'
+    +'<div style="display:flex;gap:8px;margin-bottom:10px">'
+    +'<div class="searchwrap" style="flex:1;margin-bottom:0">'+ic("search",15)+'<input id="q" placeholder="Shop, city, patient or job no." value="'+esc(ST.query)+'">'
     +(ST.query?'<button data-act="clearq">'+ic("x",15)+'</button>':'')+'</div>'
-    +'<div class="chips" style="margin-bottom:12px">'
-    +[["all","All"],["urgent","Urgent"],["unpaid","Unpaid"],["delivered","Delivered"],["cancelled","Cancelled"]].map(x=>
+    +'<button class="sortbtn" data-act="opensort" title="Sort">'+ic("sort",17)+'</button>'
+    +'</div>'
+    +'<div class="chips scrollx" style="margin-bottom:12px">'
+    +[["all","Open"],["urgent","Urgent"],["unpaid","Unpaid"],["delivered","Delivered"],["cancelled","Cancelled"]].map(x=>
       '<button class="chip'+(f===x[0]?" on":"")+'" data-act="filter" data-v="'+x[0]+'">'+x[1]+'</button>').join("")
     +'</div>'
     +'<div class="list">'
     +(list.length?list.map(jobCard).join("")
       :'<div class="empty">'+ic("alert",28)+'<p>'+(o.length?"No orders match this view.":"No orders yet. Tap + to book your first one.")+'</p></div>')
     +'</div></div>';
+}
+function openSortPicker(){
+  openModal(sheetHead("Sort orders by")
+    +SORT_OPTS.map(s=>'<button class="sortrow'+(ST.orderSort===s[0]?" on":"")+'" data-act="osort" data-v="'+s[0]+'">'
+      +'<span>'+s[1]+'</span>'+(ST.orderSort===s[0]?ic("check",18):"")+'</button>').join(""));
 }
 
 function jobCard(o){
@@ -901,7 +1068,7 @@ function jobCard(o){
   const label=o.type==="rx"?(LENS_TYPES[o.lensType]||"Rx lenses")
     :o.type==="readers"?("Readers "+(o.readerPower||"")):(o.description||"Frames / accessories");
   const city=cityOf(o.practice);
-  const late=o.promised&&o.stage!=="delivered"&&new Date(o.promised)<new Date();
+  const late=isPastPromised(o);
   const rx=rxSummary(o);
   const cancelled=!!o.cancelled;
   return '<div class="card'+(cancelled?" card-cancelled":"")+'"><div class="card-top" data-act="detail" data-id="'+o.id+'">'
@@ -913,18 +1080,22 @@ function jobCard(o){
     +(rx?'<div class="rxline num">'+esc(rx)+'</div>':'')
     +'<div class="card-meta">'+(o.jobRef?'<span class="jobref">'+esc(o.jobRef)+'</span> · ':'')
     +(o.patientRef?esc(o.patientRef)+' · ':'')+fmtDate(o.createdAt)
-    +(late&&!cancelled?' · <span class="late">LATE</span>':'')+'</div></div>'
+    +(late&&!cancelled?' · <span class="late">LATE</span>':'')+'</div>'
+    +(o.dispatchMethod&&!cancelled?'<div class="card-meta">'+ic("truck",10)+' '
+      +((DISPATCH_METHODS.find(m=>m[0]===o.dispatchMethod)||["",o.dispatchMethod])[1])+(o.dispatchDetail?" · "+esc(o.dispatchDetail):"")+'</div>':'')
+    +'</div>'
     +'<div class="rt">'
     +(cancelled?'<span class="badge" style="color:#DC2626;background:#FEE2E2">Cancelled</span>'
       :'<span class="badge" style="color:'+st.color+';background:'+st.bg+'">'+st.short+'</span>')
-    +'<span class="'+(o.paid?"tag-paid":"tag-unpaid")+'">'+(o.paid?"Paid":"Unpaid")+'</span>'
+    +'<span class="'+(o.paid?"tag-paid":orderPaidAmt(o)>0?"tag-partial":"tag-unpaid")+'">'+(o.paid?"Paid":orderPaidAmt(o)>0?"Partial":"Unpaid")+'</span>'
     +'<span class="card-total">'+money(orderReceivable(o))+'</span>'
-    +(oRate(o)>0?'<span style="font-size:10px;color:#94A3B8">incl '+oRate(o)+'% GST</span>':'')
+    +(!o.paid&&orderPaidAmt(o)>0?'<span style="font-size:10px;color:#7C3AED;font-weight:700">'+money0(orderOutstanding(o))+' left</span>'
+      :oRate(o)>0?'<span style="font-size:10px;color:#94A3B8">incl '+oRate(o)+'% GST</span>':'')
     +'</div></div>'
     +(cancelled
       ?'<div class="qbar"><button class="q-det" data-act="detail" data-id="'+o.id+'" style="flex:1">View / Restore '+ic("chev",13)+'</button></div>'
       :'<div class="qbar">'
-      +(next?'<button style="color:'+STAGES[next].color+'" data-act="stage" data-id="'+o.id+'" data-v="'+next+'">→ '+STAGES[next].short+'</button>'
+      +(next?'<button style="color:'+STAGES[next].color+'" data-act="stage" data-id="'+o.id+'" data-v="'+next+'">'+ic("chev",13)+' Mark '+STAGES[next].short+'</button>'
             :'<button style="color:#94A3B8" disabled>Complete</button>')
       +'<button class="'+(o.paid?"q-unpaid":"q-paid")+'" data-act="paid" data-id="'+o.id+'">'+(o.paid?"Mark unpaid":"Mark paid")+'</button>'
       +'<button class="q-det" data-act="detail" data-id="'+o.id+'">Details '+ic("chev",13)+'</button></div>')
@@ -939,22 +1110,30 @@ function viewPractices(){
       +'<button class="btn-main" data-act="newpractice">'+ic("plus",16)+' Add customer</button></div>';
 
   const dists=["All"].concat([...new Set(ST.practices.map(p=>p.district).filter(Boolean))]);
-  let rows=ST.practices.filter(p=>ST.pDist==="All"||p.district===ST.pDist)
+  const base=ST.practices.filter(p=>ST.pDist==="All"||p.district===ST.pDist)
     .filter(p=>!ST.pQuery.trim()||[p.name,p.city,p.district,p.state,p.pin,p.contact,p.gstin].join(" ").toLowerCase().includes(ST.pQuery.toLowerCase()))
-    .map(p=>{
-      const co=ST.orders.filter(o=>o.practice===p.name&&!o.cancelled);
-      const billed=co.reduce((s,o)=>s+orderReceivable(o),0);
-      const paid=co.filter(o=>o.paid).reduce((s,o)=>s+orderReceivable(o),0);
-      const oldest=co.filter(o=>!o.paid).reduce((m,o)=>!m||new Date(o.createdAt)<new Date(m)?o.createdAt:m,null);
-      return Object.assign({},p,{jobs:co.length,billed:billed,paid:paid,owed:billed-paid,oldest:oldest});
-    }).sort((a,b)=>b.owed-a.owed||b.billed-a.billed);
+    .map(p=>Object.assign({},p,custStats(p)));
+  const isQuiet=p=>p.jobs>0&&p.quietDays!==null&&p.quietDays>=WINBACK_DAYS;
+  const owedCount=base.filter(p=>p.owed>0).length, quietCount=base.filter(isQuiet).length;
+  let rows=base.filter(p=>ST.pFilter==="owed"?p.owed>0:ST.pFilter==="quiet"?isQuiet(p):true)
+    .sort((a,b)=>b.owed-a.owed||b.billed-a.billed);
+  ST._practiceRows=rows; // used by the export-contacts action, so export always matches what's on screen
 
   return '<div class="pad">'
     +'<div class="searchwrap">'+ic("search",15)+'<input id="pq" placeholder="Name, city, PIN or GSTIN" value="'+esc(ST.pQuery)+'">'
     +(ST.pQuery?'<button data-act="clearpq">'+ic("x",15)+'</button>':'')+'</div>'
+    +'<div class="chips scrollx" style="margin-bottom:9px">'
+    +'<button class="chip'+(ST.pFilter==="all"?" on":"")+'" data-act="pfilter" data-v="all">All '+base.length+'</button>'
+    +'<button class="chip'+(ST.pFilter==="owed"?" on":"")+'" data-act="pfilter" data-v="owed">Outstanding '+owedCount+'</button>'
+    +'<button class="chip'+(ST.pFilter==="quiet"?" on":"")+'" data-act="pfilter" data-v="quiet">Quiet '+WINBACK_DAYS+'+d '+quietCount+'</button>'
+    +'</div>'
     +(dists.length>1?'<div class="chips scrollx" style="margin-bottom:12px">'+dists.map(d=>
       '<button class="chip'+(ST.pDist===d?" on":"")+'" data-act="pdist" data-v="'+esc(d)+'">'+esc(d)+'</button>').join("")+'</div>':'')
-    +'<button class="addbtn" data-act="newpractice">'+ic("plus",15)+' Add customer</button>'
+    +'<div style="display:flex;gap:8px;margin-bottom:12px">'
+    +'<button class="addbtn" style="margin-bottom:0" data-act="newpractice">'+ic("plus",15)+' Add customer</button>'
+    +'<button class="iconbtn" style="background:#fff;border:1.5px dashed #CBD5E1;border-radius:13px;width:46px" data-act="exportcontacts" title="Export contact list">'+ic("share",16)+'</button>'
+    +'</div>'
+    +(!rows.length?'<div class="empty">'+ic("building",28)+'<p>No customers match this filter.</p></div>':'')
     +'<div class="list">'+rows.map(p=>
       '<div class="custcard"><div class="avatar">'+esc(p.name.charAt(0).toUpperCase())+'</div>'
       +'<div class="flex1" data-act="stmt" data-v="'+esc(p.name)+'">'
@@ -962,7 +1141,9 @@ function viewPractices(){
       +'<div class="cust-meta">'+(p.city?ic("pin",10)+' '+esc([p.city,p.district].filter(Boolean).join(" · "))+' · ':'')
       +p.jobs+' order'+(p.jobs!==1?"s":"")+' · '+money0(p.billed)+'</div>'
       +(p.owed>0?'<div class="cust-owed">'+money(p.owed)+' outstanding'+(p.oldest?" · "+daysAgo(p.oldest)+"d":"")+'</div>':'')
+      +(isQuiet(p)?'<div class="cust-quiet">'+ic("timer",11)+' No orders in '+p.quietDays+'d</div>':'')
       +'</div>'
+      +(p.owed>0&&(p.phone||p.email)?'<button class="iconbtn" data-act="remind" data-v="'+esc(p.name)+'" title="Send payment reminder">'+ic("message",15)+'</button>':'')
       +'<button class="iconbtn" data-act="editpractice" data-v="'+esc(p.name)+'">'+ic("pencil",15)+'</button>'
       +'<span style="color:#CBD5E1" data-act="stmt" data-v="'+esc(p.name)+'">'+ic("chev",16)+'</span></div>').join("")
     +'</div></div>';
@@ -979,8 +1160,8 @@ function viewReports(){
   const gross=revenue-cogs;
   const expTotal=pe.reduce((s,e)=>s+(Number(e.amount)||0),0);
   const net=gross-expTotal;
-  const cash=ST.orders.filter(o=>o.paid&&o.paidAt&&inRange(o.paidAt,range)&&!o.cancelled).reduce((s,o)=>s+orderReceivable(o),0);
-  const owed=ST.orders.filter(o=>!o.paid&&!o.cancelled).reduce((s,o)=>s+orderReceivable(o),0);
+  const cash=ST.orders.filter(o=>o.paidAt&&inRange(o.paidAt,range)&&!o.cancelled).reduce((s,o)=>s+orderPaidAmt(o),0);
+  const owed=ST.orders.filter(o=>!o.cancelled).reduce((s,o)=>s+orderOutstanding(o),0);
   const missing=po.filter(o=>!Number(o.cost)).length;
   const avgJob=po.length?revenue/po.length:0;
   const prevRev=prange?ST.orders.filter(o=>inRange(o.createdAt,prange)&&!o.cancelled).reduce((s,o)=>s+orderRevenue(o),0):null;
@@ -1003,9 +1184,17 @@ function viewReports(){
   if(ST.repView==="overview"){
     const mm={};
     ST.orders.forEach(o=>{const k=monthKey(o.createdAt);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].rev+=orderRevenue(o);mm[k].cost+=orderCost(o);});
-    ST.orders.filter(o=>o.paid&&o.paidAt).forEach(o=>{const k=monthKey(o.paidAt);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].cash+=orderReceivable(o);});
+    ST.orders.filter(o=>o.paidAt&&!o.cancelled).forEach(o=>{const k=monthKey(o.paidAt);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].cash+=orderPaidAmt(o);});
     ST.expenses.forEach(e=>{const k=monthKey(e.date);mm[k]=mm[k]||{rev:0,cost:0,exp:0,cash:0};mm[k].exp+=Number(e.amount)||0;});
     const mk=Object.keys(mm).sort().slice(-8);
+    const discOrders=po.filter(o=>oDiscount(o)>0);
+    const discTotal=discOrders.reduce((s,o)=>s+oDiscount(o),0);
+    const discGroup=keyFn=>{const g={};
+      discOrders.forEach(o=>{const k=keyFn(o)||"—";g[k]=g[k]||{orders:0,amount:0,custs:new Set()};
+        g[k].orders++;g[k].amount+=oDiscount(o);g[k].custs.add(o.practice);});
+      return Object.keys(g).map(k=>({k:k,v:g[k].amount,
+        sub:g[k].orders+" order"+(g[k].orders!==1?"s":"")+" · "+g[k].custs.size+" customer"+(g[k].custs.size!==1?"s":"")}))
+        .sort((a,b)=>b.v-a.v);};
     body='<div class="kpigrid">'
       +kpi("Revenue (excl GST)",money0(revenue),"",false,dRev)
       +kpi("Cash collected",money0(cash),"pos")
@@ -1022,6 +1211,10 @@ function viewReports(){
       +(revenue>0?' Debtor days ≈ <strong>'+dso.toFixed(0)+'</strong>.':'')+'</div>'
       +(missing>0?'<div class="warnbox">'+missing+' order'+(missing!==1?"s":"")+' in this period ha'+(missing!==1?"ve":"s")
         +' no cost price, so margin is overstated.</div>':'')
+      +(discOrders.length?'<div class="banner" style="background:#EFF6FF;border-color:#BFDBFE;color:#0369A1">'
+        +'<span>Discounts given this period</span><strong>'+money(discTotal)+'</strong></div>'
+        +discountBreakdownCard(discGroup(o=>o.discountCode||"(no code)"),discGroup(o=>o.discountType==="pct"?"Percentage":"Flat amount"))
+        :'')
       +'<div class="repcard"><div class="rep-t">Revenue by month</div>'
       +(mk.length?trendChart(mk,mm,"#0369A1"):'<div class="rep-e">No data yet.</div>')
       +'</div>';
@@ -1031,8 +1224,8 @@ function viewReports(){
     const ca={};
     ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=o.practice;ca[k]=ca[k]||{jobs:0,billed:0,rev:0,cost:0,paid:0,oldest:null};
       const c=ca[k];c.jobs++;c.billed+=orderReceivable(o);c.rev+=orderRevenue(o);c.cost+=orderCost(o);
-      if(o.paid)c.paid+=orderReceivable(o);
-      else if(!c.oldest||new Date(o.createdAt)<new Date(c.oldest))c.oldest=o.createdAt;});
+      c.paid+=orderPaidAmt(o);
+      if(orderOutstanding(o)>0&&(!c.oldest||new Date(o.createdAt)<new Date(c.oldest)))c.oldest=o.createdAt;});
     let rows=Object.keys(ca).map(k=>Object.assign({name:k},ca[k],{owed:ca[k].billed-ca[k].paid,p:pOf(k)}));
     rows.sort((a,b)=>ST.sortBy==="owed"?b.owed-a.owed:ST.sortBy==="orders"?b.jobs-a.jobs:b.billed-a.billed);
     body='<div class="kpigrid">'
@@ -1058,10 +1251,10 @@ function viewReports(){
         +'<span class="tbl-n" style="color:'+col+';font-weight:700">'+money0(c.owed)+'</span></div>';}).join("")
         :'<div class="rep-e">No orders yet.</div>')
       +'</div>'
-      +groupCard("Revenue by city",toRows(groupBy(o=>cityOf(o.practice))),"#0369A1")
-      +groupCard("Revenue by district",toRows(groupBy(o=>districtOf(o.practice))),"#0EA5E9")
-      +groupCard("Revenue by state",toRows(groupBy(o=>stateOf(o.practice))),"#0369A1")
-      +groupCard("Revenue by delivery route",toRows(groupBy(o=>areaOf(o.practice))),"#334155");
+      +groupCard("Revenue by city",toRows(groupBy(o=>cityOf(o.practice))))
+      +groupCard("Revenue by district",toRows(groupBy(o=>districtOf(o.practice))))
+      +groupCard("Revenue by state",toRows(groupBy(o=>stateOf(o.practice))))
+      +groupCard("Revenue by delivery route",toRows(groupBy(o=>areaOf(o.practice))));
   }
 
   if(ST.repView==="products"){
@@ -1071,18 +1264,17 @@ function viewReports(){
       .map(r=>Object.assign({},r,{sub:pct(r.v,rxJobs.length).toFixed(0)+"% of Rx orders"}));
     const maxC=Math.max(1,...coat.map(c=>c.v));
     body=groupCard("By lens / product type",toRows(groupBy(o=>typeLabelOf(o))))
-      +groupCard("By material / index",toRows(groupBy(o=>matLabel(o.material))),"#0369A1")
-      +groupCard("By order type",toRows(groupBy(o=>o.type==="rx"?"Rx lenses":o.type==="readers"?"Ready readers":"Frames / accessories")),"#334155")
+      +groupCard("By material / index",toRows(groupBy(o=>matLabel(o.material))))
+      +groupCard("By order type",toRows(groupBy(o=>o.type==="rx"?"Rx lenses":o.type==="readers"?"Ready readers":"Frames / accessories")))
       +'<div class="repcard"><div class="rep-t">Coating attach rate</div>'
-      +(coat.length?coat.map(r=>bar(r.k,r.v,maxC,r.sub,"#B45309",v=>v+" orders")).join("")
+      +(coat.length?coat.map((r,i)=>bar(r.k,r.v,maxC,r.sub,PALETTE[i%PALETTE.length],v=>v+" orders")).join("")
         :'<div class="rep-e">No Rx orders in this period.</div>')+'</div>';
   }
 
   if(ST.repView==="service"){
     const del=ST.orders.filter(o=>o.deliveredAt&&!o.cancelled);
     const avgTat=del.length?del.reduce((s,o)=>s+daysBetween(o.createdAt,o.deliveredAt),0)/del.length:0;
-    const overdue=ST.orders.filter(o=>o.promised&&o.stage!=="delivered"&&!o.cancelled&&new Date(o.promised)<new Date())
-      .sort((a,b)=>new Date(a.promised)-new Date(b.promised));
+    const overdue=ST.orders.filter(isPastPromised).sort((a,b)=>a.promised.localeCompare(b.promised));
     const past=ST.orders.filter(o=>!o.cancelled&&isPastTerms(o,pOf(o.practice).terms)).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
     const cancelledCount=ST.orders.filter(o=>o.cancelled).length;
     const maxS=Math.max(1,...STAGE_ORDER.map(k=>ST.orders.filter(o=>o.stage===k&&!o.cancelled).length));
@@ -1108,7 +1300,7 @@ function viewReports(){
         '<div class="tblrow" data-act="stmt" data-v="'+esc(o.practice)+'"><div class="flex1">'
         +'<div class="tbl-name">'+esc(o.practice)+'</div><div class="tbl-sub">'+fmtDay(o.createdAt)
         +' · terms '+(pOf(o.practice).terms||"—")+'d · '+daysAgo(o.createdAt)+'d old</div></div>'
-        +'<span class="tbl-n" style="color:#B45309;font-weight:700">'+money0(orderReceivable(o))+'</span></div>').join("")
+        +'<span class="tbl-n" style="color:#B45309;font-weight:700">'+money0(orderOutstanding(o))+'</span></div>').join("")
         :'<div class="rep-e">Nothing past terms.</div>')+'</div>';
   }
 
@@ -1164,7 +1356,7 @@ function viewMoney(){
   return '<div class="pad">'+periodChips()
     +'<div class="owed exp" style="margin:0 0 14px"><div><div class="owed-l">Expenses this period</div>'
     +'<div class="owed-v">'+money(total)+'</div></div><span style="opacity:.32">'+ic("receipt",28)+'</span></div>'
-    +(cats.length?groupCard("By category",cats,"#B45309"):"")
+    +(cats.length?groupCard("By category",cats):"")
     +'<div class="sectitle">All entries</div>'
     +(pe.length?pe.map(e=>
       '<div class="exprow"><div class="flex1"><div class="exp-d">'+esc(e.description||e.category)+'</div>'
@@ -1191,6 +1383,18 @@ const sheetHead=(title,sub,extra)=>'<div class="handle"></div><div class="sheet-
   +'<h2>'+esc(title)+'</h2>'+(sub?'<p class="sheet-sub">'+esc(sub)+'</p>':'')+'</div>'
   +'<div style="display:flex;gap:6px">'+(extra||"")+'<button class="btn-ghost" data-act="close">'+ic("x",20)+'</button></div></div>';
 const optsOf=(arr,sel)=>arr.map(v=>'<option'+(String(sel)===String(v)?' selected':'')+'>'+esc(v)+'</option>').join("");
+// Native confirm()/alert() dialogs are unreliable inside an installed iOS home-screen PWA —
+// they can silently fail to appear or auto-resolve, which makes a gated action look like it
+// just does nothing when tapped. This in-app sheet replaces every yes/no confirmation with
+// something fully under our own control instead.
+function openConfirm(message,act,id,v,danger,backAct,backId,backV){
+  const back=backAct?' data-act="'+backAct+'"'+(backId?' data-id="'+backId+'"':'')+(backV?' data-v="'+esc(backV)+'"':''):' data-act="close"';
+  openModal(sheetHead("Please confirm")
+    +'<p style="font-size:14.5px;color:#334155;line-height:1.5;margin-bottom:18px">'+esc(message)+'</p>'
+    +'<button class="btn-main'+(danger?" del":"")+'" data-act="'+act+'" data-confirmed="1"'
+    +(id?' data-id="'+id+'"':'')+(v?' data-v="'+esc(v)+'"':'')+'>Yes, continue</button>'
+    +'<button class="btn-sec"'+back+'>Cancel</button>');
+}
 
 /* ============ SETTINGS ============ */
 function openSettings(){
@@ -1232,7 +1436,7 @@ function openDetail(id){
   const p=pOf(o.practice), st=STAGES[o.stage]||STAGES.received;
   const cancelled=!!o.cancelled;
   const row=(l,v)=>v?'<div class="drow"><span class="dlbl">'+esc(l)+'</span><span class="dval">'+esc(v)+'</span></div>':"";
-  const taxable=oTaxable(o), gst=oGst(o), inv=oInvoice(o), prof=orderProfit(o);
+  const taxable=oTaxable(o), gst=oGst(o), inv=oInvoice(o), prof=orderProfit(o), discount=oDiscount(o);
   const inter=isInterState(o);
   let rx="";
   if(o.type==="rx"){
@@ -1261,13 +1465,15 @@ function openDetail(id){
     +'<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">'
     +(cancelled?'<span class="badge" style="font-size:12px;padding:5px 11px;color:#DC2626;background:#FEE2E2">Cancelled</span>'
       :'<span class="badge" style="font-size:12px;padding:5px 11px;color:'+st.color+';background:'+st.bg+'">'+st.label+'</span>')
-    +'<span class="badge" style="font-size:12px;padding:5px 11px;color:'+(o.paid?"#0369A1":"#B45309")+';background:'+(o.paid?"#DBEAFE":"#FEF3C7")+'">'
-    +(o.paid?"Paid":"Unpaid")+' · '+money(inv)+'</span>'
+    +'<span class="badge" style="font-size:12px;padding:5px 11px;color:'+(o.paid?"#0369A1":orderPaidAmt(o)>0?"#7C3AED":"#B45309")+';background:'+(o.paid?"#DBEAFE":orderPaidAmt(o)>0?"#EDE9FE":"#FEF3C7")+'">'
+    +(o.paid?"Paid":orderPaidAmt(o)>0?"Partial · "+money(orderOutstanding(o))+" left":"Unpaid")+' · '+money(inv)+'</span>'
     +(o.priority==="urgent"&&!cancelled?'<span class="badge" style="font-size:12px;padding:5px 11px;color:#DC2626;background:#FEE2E2">Urgent</span>':'')
     +'</div>'
     +(cancelled?'<div class="warnbox" style="margin-bottom:14px">This order is cancelled and excluded from open-pipeline counts. It stays in your records and Excel export'
       +(o.cancelledAt?' — cancelled '+fmtDate(o.cancelledAt):'')+'.</div>':'')
     +'<div class="mbar">'
+    +(discount>0?'<div style="grid-column:1/-1;font-size:11px;font-weight:700;color:#0369A1;text-align:center;margin-bottom:2px">'
+      +ic("clip",10)+' Discount applied: -'+money(discount)+(o.discountCode?' · '+esc(o.discountCode):'')+'</div>':'')
     +'<div><div class="mlbl">Taxable</div><div class="mval">'+money(taxable)+'</div></div>'
     +'<div><div class="mlbl">GST '+oRate(o)+'%</div><div class="mval">'+money(gst)+'</div></div>'
     +'<div><div class="mlbl">Invoice</div><div class="mval">'+money(inv)+'</div></div>'
@@ -1279,23 +1485,29 @@ function openDetail(id){
     +rx
     +'<div class="dblock">'+det
     +row("Quantity",o.qty)+row("Unit price (excl GST)",o.price?money(o.price):"")
+    +row("Gross (before discount)",discount>0?money(oGross(o)):"")
+    +row("Discount",discount>0?(o.discountType==="pct"?o.discountValue+"% off (-"+money(discount)+")":"-"+money(discount))+(o.discountCode?" · "+o.discountCode:""):"")
     +row("Unit cost",o.cost?money(o.cost):"")+row("Cost total",orderCost(o)?money(orderCost(o)):"")
     +row("Profit",money(prof))
     +row("HSN",o.hsn)+row("GST rate",oRate(o)+"%")
     +row("Promised",fmtDay(o.promised))+row("Booked",fmtDate(o.createdAt))
+    +row("Dispatched via",o.dispatchMethod?(DISPATCH_METHODS.find(m=>m[0]===o.dispatchMethod)||["",o.dispatchMethod])[1]+(o.dispatchDetail?" · "+o.dispatchDetail:""):"")
     +row("Delivered",o.deliveredAt?fmtDate(o.deliveredAt):"")
     +row("Turnaround",o.deliveredAt?daysBetween(o.createdAt,o.deliveredAt)+" days":"")
-    +row("Paid on",o.paidAt?fmtDate(o.paidAt):"")+'</div>'
+    +row("Paid on",o.paidAt?fmtDate(o.paidAt):"")
+    +row("Paid so far",!o.paid&&orderPaidAmt(o)>0?money(orderPaidAmt(o)):"")
+    +row("Outstanding",!o.paid&&orderPaidAmt(o)>0?money(orderOutstanding(o)):"")+'</div>'
     +(o.notes?'<div class="notesbox">'+esc(o.notes)+'</div>':'')
     +(cancelled?'':'<label class="lbl">Move to stage</label><div class="stagepick">'
     +STAGE_ORDER.map(k=>'<button class="opt'+(o.stage===k?" on":"")+'" data-act="stage" data-id="'+o.id+'" data-v="'+k+'" data-keep="1">'
       +STAGES[k].short+'</button>').join("")+'</div>')
     +'<div style="display:flex;gap:8px;margin-top:14px">'
-    +(cancelled?'':'<button class="btn-main '+(o.paid?"alt":"")+'" style="flex:1" data-act="paid" data-id="'+o.id+'" data-keep="1">'
-    +(o.paid?"Mark unpaid":"Mark paid "+money(inv))+'</button>')
+    +(cancelled?'':o.paid
+      ?'<button class="btn-main alt" style="flex:1" data-act="paid" data-id="'+o.id+'" data-keep="1">Mark unpaid</button>'
+      :'<button class="btn-main" style="flex:1" data-act="openpayment" data-id="'+o.id+'">'+ic("check",18)+' Record payment · '+money(orderOutstanding(o))+' due</button>')
     +(cancelled
       ?'<button class="btn-main" style="flex:1" data-act="uncancel" data-id="'+o.id+'">'+ic("check",17)+' Restore order</button>'
-      :'<button class="btn-del" data-act="cancelorder" data-id="'+o.id+'">'+ic("x",17)+'</button>')
+      :'<button class="btn-del" style="flex:1" data-act="cancelorder" data-id="'+o.id+'">'+ic("x",17)+' Cancel order</button>')
     +'</div>'
     +(cancelled?'':'<button class="hint-btn" data-act="delorder" data-id="'+o.id+'">Delete permanently instead</button>'));
 }
@@ -1305,15 +1517,15 @@ function openStatement(name){
   const p=pOf(name), coAll=ST.orders.filter(o=>o.practice===name);
   const co=coAll.filter(o=>!o.cancelled);
   const cancelledJ=coAll.filter(o=>o.cancelled).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  const unpaid=co.filter(o=>!o.paid).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  const unpaid=co.filter(o=>orderOutstanding(o)>0).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
   const paidJ=co.filter(o=>o.paid);
   const billed=co.reduce((s,o)=>s+orderReceivable(o),0);
   const taxable=co.reduce((s,o)=>s+orderRevenue(o),0);
   const cost=co.reduce((s,o)=>s+orderCost(o),0);
-  const paidT=paidJ.reduce((s,o)=>s+orderReceivable(o),0);
+  const paidT=co.reduce((s,o)=>s+orderPaidAmt(o),0);
   const owed=billed-paidT;
   const b={cur:0,b30:0,b60:0};
-  unpaid.forEach(o=>{const d=daysAgo(o.createdAt);const v=orderReceivable(o);
+  unpaid.forEach(o=>{const d=daysAgo(o.createdAt);const v=orderOutstanding(o);
     if(d<=30)b.cur+=v;else if(d<=60)b.b30+=v;else b.b60+=v;});
 
   openModal(sheetHead(name,geoLine(p)||"No address set",
@@ -1338,10 +1550,12 @@ function openStatement(name){
       +unpaid.map(o=>'<div class="stmtrow"><div class="flex1" data-act="detail" data-id="'+o.id+'">'
         +'<div class="stmt-t">'+(o.jobRef?esc(o.jobRef)+' · ':'')+esc(typeLabelOf(o))+'</div>'
         +'<div class="stmt-s">'+fmtDay(o.createdAt)+' · '+daysAgo(o.createdAt)+' days'
-        +(isPastTerms(o,p.terms)?' · <span class="late">past terms</span>':'')+'</div></div>'
-        +'<span class="stmt-a">'+money(orderReceivable(o))+'</span>'
-        +'<button class="stmt-p" data-act="paid" data-id="'+o.id+'" data-back="stmt" data-v="'+esc(name)+'">'+ic("check",15)+'</button></div>').join("")
+        +(isPastTerms(o,p.terms)?' · <span class="late">past terms</span>':'')
+        +(orderPaidAmt(o)>0?' · <span style="color:#7C3AED;font-weight:700">partial</span>':'')+'</div></div>'
+        +'<span class="stmt-a">'+money(orderOutstanding(o))+'</span>'
+        +'<button class="stmt-p" data-act="openpayment" data-id="'+o.id+'" data-back="stmt" data-v="'+esc(name)+'">'+ic("check",15)+'</button></div>').join("")
       +'<button class="btn-main" style="margin-top:14px" data-act="settle" data-v="'+esc(name)+'">'+ic("checks",18)+' Settle account · '+money(owed)+'</button>'
+      +((p.phone||p.email)?'<button class="btn-sec" data-act="remind" data-v="'+esc(name)+'">'+ic("message",16)+' Send payment reminder</button>':'')
       :'<p style="color:#64748B;font-size:14px;text-align:center;padding:18px 0">Nothing outstanding. Account is clear.</p>')
     +(paidJ.length?'<div class="sectitle">Recently paid</div>'
       +paidJ.slice(0,6).map(o=>'<div class="stmtrow" style="opacity:.65"><div class="flex1" data-act="detail" data-id="'+o.id+'">'
@@ -1360,6 +1574,22 @@ function openStatement(name){
 
 /* ============ CUSTOMER EDITOR ============ */
 let PE=null;
+let DISPATCH_DRAFT=null;
+function openDispatchPrompt(orderId,keep){
+  const o=ST.orders.find(x=>x.id===orderId); if(!o)return;
+  DISPATCH_DRAFT={id:orderId,method:o.dispatchMethod||"bus",detail:o.dispatchDetail||"",keep:!!keep};
+  renderDispatchPrompt();
+}
+function renderDispatchPrompt(){
+  const d=DISPATCH_DRAFT; if(!d)return;
+  openModal(sheetHead("Mark as dispatched","How is this order being sent out?")
+    +'<div class="field"><label class="lbl">Method</label><div class="chips">'
+    +DISPATCH_METHODS.map(m=>'<button class="chip'+(d.method===m[0]?" on":"")+'" data-act="dispatchmethod" data-v="'+m[0]+'">'+m[1]+'</button>').join("")
+    +'</div></div>'
+    +'<div class="field"><label class="lbl">'+dispatchDetailLabel(d.method)+' <span style="font-weight:400;color:#94A3B8">— optional</span></label>'
+    +'<input class="inp" id="dispatchDetail" value="'+esc(d.detail)+'" placeholder="'+esc(dispatchDetailPlaceholder(d.method))+'"></div>'
+    +'<button class="btn-main" data-act="confirmdispatch">'+ic("check",18)+' Confirm dispatch</button>', true);
+}
 function openPracticeEditor(name){
   PE=name?Object.assign(emptyPractice(),pOf(name),{__orig:name}):Object.assign(emptyPractice(),{__orig:""});
   renderPracticeEditor();
@@ -1377,8 +1607,9 @@ function renderPracticeEditor(){
     '<button class="chip'+(f[k]===v?" on":"")+'" data-act="psetv" data-k="'+k+'" data-v="'+esc(v)+'">'+esc(v)+'</button>').join("")+'</div>':"";
 
   openModal(sheetHead(isNew?"Add customer":"Edit customer")
-    +'<div class="field"><label class="lbl">Shop / practice name</label>'+inp("name","e.g. Savera Opticians")
-    +(dup?'<p class="err">A customer with this name already exists.</p>':'')+'</div>'
+    +'<div class="field"><label class="lbl">Shop / practice name</label>'
+    +'<input class="inp" id="pf_name" data-pf="name" data-act="nameguard" type="text" value="'+esc(f.name)+'" placeholder="e.g. Savera Opticians">'
+    +'<p class="err'+(dup?"":" hide")+'" id="pf_name_err">A customer with this name already exists.</p></div>'
     +'<div class="sectitle">Contact</div>'
     +'<div class="field"><label class="lbl">Contact person</label>'+inp("contact","Owner / manager")+'</div>'
     +'<div class="row2"><div class="field"><label class="lbl">Mobile</label>'+inp("phone","+91 98xxxxxxxx","tel",' maxlength="14" inputmode="tel" data-act="phoneguard"')+'</div>'
@@ -1399,7 +1630,7 @@ function renderPracticeEditor(){
     +TERMS_OPTS.map(t=>'<button class="chip'+(String(f.terms)===t?" on":"")+'" data-act="psetv" data-k="terms" data-v="'+t+'">'
       +(t==="0"?"On delivery":t+" days")+'</button>').join("")+'</div></div>'
     +'<div class="field"><label class="lbl">Account notes</label>'+inp("notes","Delivery instructions, discounts…")+'</div>'
-    +'<button class="btn-main'+(valid?"":" dis")+'" data-act="savepractice">'+ic("check",18)+' Save customer</button>', true);
+    +'<button class="btn-main'+(valid?"":" dis")+'" id="pf_save" data-act="savepractice">'+ic("check",18)+' Save customer</button>', true);
 }
 
 /* ============ EXPENSE FORM ============ */
@@ -1539,6 +1770,7 @@ function newFS(){return {
   frameType:"Full rim", frameSupply:"Frame enclosed", edging:"Edged & fitted", diameter:"70mm",
   readerPower:"+2.00", description:"",
   qty:"1", price:"", cost:"", gstRate:(ST.biz.gst||"12"), hsn:defaultHsn("rx"),
+  discountType:"none", discountValue:"", discountCode:"",
   priority:"standard", promised:"",
   paid:false, notes:"", sec:{rx:true,lens:false,frame:false}
 };}
@@ -1556,6 +1788,7 @@ function fsFromOrder(o){
     edging:o.edging||"Edged & fitted", diameter:o.diameter||"70mm",
     readerPower:o.readerPower||"+2.00", description:o.description||"",
     qty:o.qty||"1", price:o.price||"", cost:o.cost||"", gstRate:o.gstRate||(ST.biz.gst||"12"), hsn:o.hsn||"",
+    discountType:o.discountType||"none", discountValue:o.discountValue||"", discountCode:o.discountCode||"",
     priority:o.priority||"standard", promised:o.promised||"",
     paid:!!o.paid, notes:o.notes||"", sec:{rx:true,lens:false,frame:false}
   };
@@ -1580,14 +1813,16 @@ function renderOrderForm(){
   const dists=["All"].concat([...new Set(ST.practices.map(p=>p.district).filter(Boolean))]);
   const fp=ST.practices.filter(p=>f.dist==="All"||p.district===f.dist);
   const chosen=ST.practices.find(p=>p.name===f.practice);
-  const qty=Number(f.qty)||0, taxable=qty*(Number(f.price)||0), tcost=qty*(Number(f.cost)||0);
-  const rate=Number(f.gstRate)||0, gst=taxable*rate/100, inv=taxable+gst, prof=taxable-tcost;
+  const gross=oGross(f), discount=oDiscount(f), taxable=oTaxable(f), gst=oGst(f), inv=oInvoice(f), prof=taxable-orderCost(f);
   const needsSeg=["progressive","bifocal","trifocal"].includes(f.lensType);
   const dupNew=f.mode==="new"&&f.np.name.trim()&&ST.practices.some(p=>p.name.toLowerCase()===f.np.name.trim().toLowerCase());
   const custOK=isEdit?true:(f.mode==="existing"?!!f.practice:(!!f.np.name.trim()&&!dupNew));
   const rxOK=f.type!=="rx"||f.od.sph!==""||f.os.sph!=="";
   const accOK=f.type!=="accessory"||!!f.description.trim();
-  const valid=custOK&&rxOK&&accOK;
+  const promisedOK=!!f.promised;
+  const valid=custOK&&rxOK&&accOK&&promisedOK;
+  const recentCodes=[...new Set(ST.orders.slice().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))
+    .map(o=>(o.discountCode||"").trim()).filter(Boolean))].slice(0,6);
 
   const sect=(key,title,inner)=>'<div class="sect'+(f.sec[key]?" open":"")+'">'
     +'<button class="sect-head" data-act="sec" data-v="'+key+'"><span>'+title+'</span>'+ic("chev",16)+'</button>'
@@ -1713,9 +1948,19 @@ function renderOrderForm(){
       '<option value="'+r+'"'+(String(f.gstRate)===r?' selected':'')+'>'+r+'%</option>').join("")+'</select></div>'
     +'<div class="field"><label class="lbl">HSN code</label>'
     +'<input class="inp" data-f="hsn" value="'+esc(f.hsn)+'" placeholder="'+esc(defaultHsn(f.type))+'"></div></div>'
-    +'<div class="mprev" id="mprev">'+marginPreview(taxable,gst,inv,prof)+'</div>'
-    +'<div class="row2"><div class="field"><label class="lbl">Promised date</label>'
-    +'<input class="inp" type="date" data-f="promised" value="'+esc(f.promised)+'"></div>'
+    +'<div class="field"><label class="lbl">Discount <span style="font-weight:400;color:#94A3B8">— optional</span></label>'
+    +'<div class="chips">'+DISCOUNT_TYPES.map(dt=>'<button class="chip'+(f.discountType===dt[0]?" on":"")+'" data-act="setv" data-k="discountType" data-v="'+dt[0]+'">'+dt[1]+'</button>').join("")+'</div>'
+    +(f.discountType!=="none"?'<div class="row2" style="margin-top:8px">'
+      +'<div class="field"><label class="lbl">'+(f.discountType==="pct"?"Percent off":"Amount off (₹)")+'</label>'
+      +'<input class="inp" type="number" inputmode="decimal" data-f="discountValue" data-act="calc" value="'+esc(f.discountValue)+'" placeholder="'+(f.discountType==="pct"?"e.g. 10":"e.g. 500")+'"></div>'
+      +'<div class="field"><label class="lbl">Code / reason</label>'
+      +'<input class="inp" data-f="discountCode" value="'+esc(f.discountCode)+'" placeholder="e.g. DIWALI10, Loyalty"></div></div>'
+      +(recentCodes.length?'<div class="chips" style="margin-top:8px">'+recentCodes.map(c=>
+        '<button class="chip'+(f.discountCode===c?" on":"")+'" data-act="setv" data-k="discountCode" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>':'')
+      :'')+'</div>'
+    +'<div class="mprev" id="mprev">'+marginPreview(taxable,gst,inv,prof,discount)+'</div>'
+    +'<div class="row2"><div class="field"><label class="lbl">Promised date <span style="font-weight:400;color:#DC2626">— required</span></label>'
+    +'<input class="inp" type="date" data-f="promised" data-act="rerender" value="'+esc(f.promised)+'"></div>'
     +'<div class="field"><label class="lbl">Priority</label><div style="display:flex;gap:6px">'
     +[["standard","Std"],["urgent","Urgent"]].map(x=>'<button class="opt'+(f.priority===x[0]?" on":"")+(x[0]==="urgent"?" warn":"")
       +'" style="flex:1;padding:11px 4px" data-act="setv" data-k="priority" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div></div></div>'
@@ -1723,11 +1968,13 @@ function renderOrderForm(){
     +'<div class="field"><label class="lbl">Notes</label>'
     +'<input class="inp" data-f="notes" value="'+esc(f.notes)+'" placeholder="Lab instructions, delivery notes…"></div>'
     +'<button class="btn-main'+(valid?"":" dis")+'" data-act="saveorder">'+ic("check",18)+' '+(isEdit?"Save changes":"Book order")+'</button>'
-    +(valid?'':'<p class="hint">'+(!custOK?"Select or name a customer":!rxOK?"Enter at least one sphere value":"Add a description")+'.</p>'), true);
+    +(valid?'':'<p class="hint">'+(!custOK?"Select or name a customer":!rxOK?"Enter at least one sphere value":!accOK?"Add a description":"Pick a promised delivery date")+'.</p>'), true);
 }
-function marginPreview(taxable,gst,inv,prof){
+function marginPreview(taxable,gst,inv,prof,discount){
   const c=prof>=0?"pos":"neg";
-  return '<div><div class="mlbl">Taxable</div><div class="mval">'+money(taxable)+'</div></div>'
+  return (discount>0?'<div style="grid-column:1/-1;font-size:11px;font-weight:700;color:#0369A1;text-align:center;margin-bottom:2px">'
+    +ic("clip",10)+' Discount applied: -'+money(discount)+'</div>':'')
+    +'<div><div class="mlbl">Taxable</div><div class="mval">'+money(taxable)+'</div></div>'
     +'<div><div class="mlbl">GST</div><div class="mval">'+money(gst)+'</div></div>'
     +'<div><div class="mlbl">Invoice</div><div class="mval">'+money(inv)+'</div></div>'
     +'<div><div class="mlbl">Margin</div><div class="mval '+c+'">'+(taxable?pct(prof,taxable).toFixed(0)+"%":"—")+'</div></div>';
@@ -1756,18 +2003,24 @@ function exportExcel(){
     "Tint":o.tintType&&o.tintType!=="None"?(o.tintType+" "+o.tintColor+" "+o.tintPct+"%"):"",
     "Frame type":o.frameType||"","Frame supply":o.frameSupply||"","Edging":o.edging||"","Blank dia":o.diameter||"",
     "Reader power":o.readerPower||"","Description":o.description||"",
-    "HSN":o.hsn||"","Qty":oQty(o),"Rate excl GST":Number(o.price)||0,
+    "HSN":o.hsn||"","Qty":oQty(o),"Rate excl GST":Number(o.price)||0,"Gross before discount":oGross(o),
+    "Discount type":o.discountType&&o.discountType!=="none"?(o.discountType==="pct"?"Percentage":"Flat amount"):"",
+    "Discount value":o.discountType&&o.discountType!=="none"?Number(o.discountValue)||0:"",
+    "Discount amount":oDiscount(o),"Discount code":o.discountCode||"",
     "Taxable value":tx,"GST %":oRate(o),"CGST":inter?0:g/2,"SGST":inter?0:g/2,"IGST":inter?g:0,
     "Total GST":g,"Invoice total":tx+g,
     "Unit cost":Number(o.cost)||0,"Cost total":orderCost(o),"Profit":orderProfit(o),
     "Margin %":Number(pct(orderProfit(o),tx).toFixed(1)),
     "Supply":inter?"Inter-state":"Intra-state",
     "Priority":o.priority==="urgent"?"URGENT":"Standard","Promised":fmtDay(o.promised),
-    "Stage":(STAGES[o.stage]||{}).label||o.stage,"Delivered":o.deliveredAt?fmtDay(o.deliveredAt):"",
+    "Stage":(STAGES[o.stage]||{}).label||o.stage,
+    "Dispatch method":o.dispatchMethod?(DISPATCH_METHODS.find(m=>m[0]===o.dispatchMethod)||["",""])[1]:"",
+    "Dispatch detail":o.dispatchDetail||"","Delivered":o.deliveredAt?fmtDay(o.deliveredAt):"",
     "Turnaround days":o.deliveredAt?daysBetween(o.createdAt,o.deliveredAt):"",
     "Cancelled":o.cancelled?"YES":"","Cancelled on":o.cancelledAt?fmtDate(o.cancelledAt):"",
-    "Paid":o.paid?"PAID":"UNPAID","Paid on":o.paidAt?fmtDate(o.paidAt):"",
-    "Days outstanding":o.paid?"":daysAgo(o.createdAt),
+    "Paid":o.paid?"PAID":orderPaidAmt(o)>0?"PARTIAL":"UNPAID","Paid on":o.paidAt?fmtDate(o.paidAt):"",
+    "Amount paid":orderPaidAmt(o),"Outstanding":orderOutstanding(o),
+    "Days outstanding":orderOutstanding(o)>0?daysAgo(o.createdAt):"",
     "Past terms":isPastTerms(o,p.terms)?"YES":"","Notes":o.notes||""};}))});
 
   sheets.push({name:"Customers",rows:XL.objRows(ST.practices.map(p=>{
@@ -1775,7 +2028,7 @@ function exportExcel(){
     const billed=co.reduce((s,o)=>s+orderReceivable(o),0);
     const tx=co.reduce((s,o)=>s+orderRevenue(o),0);
     const cost=co.reduce((s,o)=>s+orderCost(o),0);
-    const paid=co.filter(o=>o.paid).reduce((s,o)=>s+orderReceivable(o),0);
+    const paid=co.reduce((s,o)=>s+orderPaidAmt(o),0);
     return {"Customer":p.name,"GSTIN":p.gstin||"","Contact":p.contact||"","Mobile":p.phone||"","Email":p.email||"",
       "Address 1":p.addr1||"","Address 2":p.addr2||"","City":p.city||"","District":p.district||"",
       "State":p.state||"","PIN":p.pin||"","Delivery route":p.area||"","Terms (days)":p.terms||"",
@@ -1786,8 +2039,8 @@ function exportExcel(){
   const byCust={};
   ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=o.practice;byCust[k]=byCust[k]||{n:0,billed:0,tx:0,cost:0,paid:0,oldest:null};
     const c=byCust[k];c.n++;c.billed+=orderReceivable(o);c.tx+=orderRevenue(o);c.cost+=orderCost(o);
-    if(o.paid)c.paid+=orderReceivable(o);
-    else if(!c.oldest||new Date(o.createdAt)<new Date(c.oldest))c.oldest=o.createdAt;});
+    c.paid+=orderPaidAmt(o);
+    if(orderOutstanding(o)>0&&(!c.oldest||new Date(o.createdAt)<new Date(c.oldest)))c.oldest=o.createdAt;});
   sheets.push({name:"By customer",rows:XL.objRows(Object.keys(byCust).map(k=>{const c=byCust[k],p=pOf(k);
     return {Customer:k,City:p.city||"",District:p.district||"",State:p.state||"","Total orders":c.n,
       "Total billed":c.billed,"Taxable value":c.tx,"Total cost":c.cost,"Gross profit":c.tx-c.cost,
@@ -1795,6 +2048,26 @@ function exportExcel(){
       "Total paid":c.paid,"Outstanding":c.billed-c.paid,
       "Avg order value":Number((c.billed/c.n).toFixed(2)),
       "Oldest unpaid (days)":c.oldest?daysAgo(c.oldest):""};}).sort((a,b)=>b["Total billed"]-a["Total billed"]))});
+
+  // Discounts — cancelled orders never happened, so excluded, matching every other financial sheet
+  const discAll=ST.orders.filter(o=>!o.cancelled&&oDiscount(o)>0);
+  const byCode={};
+  discAll.forEach(o=>{const k=o.discountCode||"(no code)";
+    byCode[k]=byCode[k]||{orders:0,amount:0,custs:new Set(),types:new Set()};
+    const c=byCode[k];c.orders++;c.amount+=oDiscount(o);c.custs.add(o.practice);
+    c.types.add(o.discountType==="pct"?"%":"Flat");});
+  sheets.push({name:"Discounts by code",rows:XL.objRows(Object.keys(byCode).map(k=>{const c=byCode[k];
+    return {"Code":k,"Type(s) used":[...c.types].join(", "),"Orders":c.orders,
+      "Distinct customers":c.custs.size,"Total discount":Number(c.amount.toFixed(2))};})
+    .sort((a,b)=>b["Total discount"]-a["Total discount"]))});
+
+  const byCustType={};
+  discAll.forEach(o=>{const type=o.discountType==="pct"?"Percentage":"Flat amount",k=o.practice+"|"+type;
+    byCustType[k]=byCustType[k]||{customer:o.practice,type:type,orders:0,amount:0};
+    const c=byCustType[k];c.orders++;c.amount+=oDiscount(o);});
+  sheets.push({name:"Discounts by customer",rows:XL.objRows(Object.keys(byCustType).map(k=>{const c=byCustType[k];
+    return {"Customer":c.customer,"Discount type":c.type,"Orders":c.orders,"Total discount":Number(c.amount.toFixed(2))};})
+    .sort((a,b)=>b["Total discount"]-a["Total discount"]))});
 
   // GST summary by month x rate (cancelled orders never happened, so excluded from tax owed)
   const gs={};
@@ -1813,8 +2086,8 @@ function exportExcel(){
   const mm={};
   ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=monthKey(o.createdAt);mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};
     mm[k].tx+=orderRevenue(o);mm[k].gst+=oGst(o);mm[k].cost+=orderCost(o);mm[k].n++;});
-  ST.orders.filter(o=>o.paid&&o.paidAt&&!o.cancelled).forEach(o=>{const k=monthKey(o.paidAt);
-    mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};mm[k].cash+=orderReceivable(o);});
+  ST.orders.filter(o=>o.paidAt&&!o.cancelled).forEach(o=>{const k=monthKey(o.paidAt);
+    mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};mm[k].cash+=orderPaidAmt(o);});
   ST.expenses.forEach(e=>{const k=monthKey(e.date);mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};mm[k].exp+=Number(e.amount)||0;});
   sheets.push({name:"Monthly summary",rows:XL.objRows(Object.keys(mm).sort().map(k=>{const m=mm[k],gp=m.tx-m.cost;
     return {Month:monthLabel(k),Orders:m.n,"Revenue excl GST":m.tx,"GST charged":m.gst,
@@ -1824,7 +2097,7 @@ function exportExcel(){
   const grp=(fn,col,name)=>{const g={};
     ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=fn(o)||"—";g[k]=g[k]||{n:0,qty:0,tx:0,cost:0,owed:0};
       g[k].n++;g[k].qty+=oQty(o);g[k].tx+=orderRevenue(o);g[k].cost+=orderCost(o);
-      if(!o.paid)g[k].owed+=orderReceivable(o);});
+      g[k].owed+=orderOutstanding(o);});
     const rows=Object.keys(g).map(k=>{const x={};x[col]=k;x.Orders=g[k].n;x.Units=g[k].qty;
       x["Revenue excl GST"]=g[k].tx;x.Cost=g[k].cost;x["Gross profit"]=g[k].tx-g[k].cost;
       x["Margin %"]=Number(pct(g[k].tx-g[k].cost,g[k].tx).toFixed(1));x.Outstanding=g[k].owed;return x;})
@@ -1839,7 +2112,7 @@ function exportExcel(){
 
   const del=ST.orders.filter(o=>o.deliveredAt&&!o.cancelled);
   const avgTat=del.length?del.reduce((s,o)=>s+daysBetween(o.createdAt,o.deliveredAt),0)/del.length:0;
-  const overdue=ST.orders.filter(o=>o.promised&&o.stage!=="delivered"&&!o.cancelled&&new Date(o.promised)<new Date());
+  const overdue=ST.orders.filter(isPastPromised);
   const past=ST.orders.filter(o=>!o.cancelled&&isPastTerms(o,pOf(o.practice).terms));
   const cancelledOrders=ST.orders.filter(o=>o.cancelled);
   sheets.push({name:"Service",rows:XL.objRows([
@@ -1848,7 +2121,7 @@ function exportExcel(){
     {Metric:"Orders past promised date",Value:overdue.length},
     {Metric:"Value past promised date",Value:overdue.reduce((s,o)=>s+orderReceivable(o),0)},
     {Metric:"Bills past payment terms",Value:past.length},
-    {Metric:"Value past payment terms",Value:past.reduce((s,o)=>s+orderReceivable(o),0)},
+    {Metric:"Value past payment terms",Value:past.reduce((s,o)=>s+orderOutstanding(o),0)},
     {Metric:"Urgent orders still open",Value:ST.orders.filter(o=>o.priority==="urgent"&&o.stage!=="delivered"&&!o.cancelled).length},
     {Metric:"Cancelled orders",Value:cancelledOrders.length},
     {Metric:"Cancelled orders value",Value:cancelledOrders.reduce((s,o)=>s+orderReceivable(o),0)}
@@ -1864,20 +2137,16 @@ function backup(){
     orders:ST.orders,practices:ST.practices,expenses:ST.expenses,biz:ST.biz},null,2),
     "murali_backup_"+new Date().toISOString().slice(0,10)+".json","application/json");
 }
+let PENDING_RESTORE=null;
 function restore(file){
   const r=new FileReader();
   r.onload=async()=>{
     try{
       const d=JSON.parse(r.result);
       if(!d||!Array.isArray(d.orders)) throw new Error("bad file");
-      if(!confirm("Restore "+d.orders.length+" orders, "+(d.practices||[]).length+" customers and "
-        +(d.expenses||[]).length+" expenses? This REPLACES everything currently in the app.")) return;
-      ST.orders=d.orders||[];
-      ST.practices=(d.practices||[]).map(p=>Object.assign(emptyPractice(),p));
-      ST.expenses=d.expenses||[];
-      if(d.biz)ST.biz=Object.assign(emptyBiz(),d.biz);
-      await persist(); closeModal(); render();
-      alert("Restored successfully.");
+      PENDING_RESTORE=d;
+      openConfirm("Restore "+d.orders.length+" orders, "+(d.practices||[]).length+" customers and "
+        +(d.expenses||[]).length+" expenses? This REPLACES everything currently in the app.","dorestore",null,null,true,"settings");
     }catch(e){ alert("That file could not be read as a Murali backup."); }
   };
   r.readAsText(file);
@@ -1955,16 +2224,31 @@ document.addEventListener("click",async function(ev){
   switch(a){
     case "nav": ST.nav=v; render(); break;
     case "filter": ST.filter=v; render(); break;
+    case "opensort": openSortPicker(); break;
+    case "osort": ST.orderSort=v; closeModal(); render(); break;
     case "pipe": ST.filter=(ST.filter===v?"all":v); render(); break;
     case "clearq": ST.query=""; render(); break;
     case "clearpq": ST.pQuery=""; render(); break;
     case "pdist": ST.pDist=v; render(); break;
+    case "pfilter": ST.pFilter=v; render(); break;
+    case "discview": ST.discView=v; render(); break;
     case "period": ST.period=v; render(); break;
     case "repview": ST.repView=v; render(); break;
     case "sort": ST.sortBy=v; render(); break;
     case "excel": exportExcel(); break;
     case "backup": backup(); break;
     case "restore": document.getElementById("restoreFile").click(); break;
+    case "dorestore": {
+      const d=PENDING_RESTORE; PENDING_RESTORE=null;
+      if(!d)break;
+      ST.orders=d.orders||[];
+      ST.practices=(d.practices||[]).map(p=>Object.assign(emptyPractice(),p));
+      ST.expenses=d.expenses||[];
+      if(d.biz)ST.biz=Object.assign(emptyBiz(),d.biz);
+      PM=pMap();
+      await persist(); closeModal(); render();
+      showToast("Restored successfully");
+      break; }
     case "settings": openSettings(); break;
     case "fab": if(ST.nav==="money") openExpenseForm(); else openOrderForm(); break;
 
@@ -1978,32 +2262,86 @@ document.addEventListener("click",async function(ev){
       await persist(); closeModal(); render(); break; }
 
     case "stage": {
+      if(v==="out"){ openDispatchPrompt(id,!!t.getAttribute("data-keep")); break; }
       const o=ST.orders.find(x=>x.id===id); if(!o)break;
       o.stage=v; o.deliveredAt = v==="delivered" ? (o.deliveredAt||new Date().toISOString()) : null;
       await persist(); render();
       if(t.getAttribute("data-keep")) openDetail(id);
       break; }
+    case "dispatchmethod": {
+      const el=document.getElementById("dispatchDetail");
+      if(el&&DISPATCH_DRAFT) DISPATCH_DRAFT.detail=el.value;
+      if(DISPATCH_DRAFT) DISPATCH_DRAFT.method=v;
+      renderDispatchPrompt();
+      break; }
+    case "confirmdispatch": {
+      if(!DISPATCH_DRAFT)break;
+      const el=document.getElementById("dispatchDetail");
+      const detail=(el?el.value:DISPATCH_DRAFT.detail||"").trim();
+      const o=ST.orders.find(x=>x.id===DISPATCH_DRAFT.id); if(!o){DISPATCH_DRAFT=null;break;}
+      o.stage="out"; o.dispatchMethod=DISPATCH_DRAFT.method; o.dispatchDetail=detail;
+      const keep=DISPATCH_DRAFT.keep, oid=o.id; DISPATCH_DRAFT=null;
+      await persist(); closeModal(); render();
+      showToast("Marked as dispatched"+(detail?" · "+detail:""));
+      if(keep) openDetail(oid);
+      break; }
     case "paid": {
       const o=ST.orders.find(x=>x.id===id); if(!o)break;
-      o.paid=!o.paid; o.paidAt=o.paid?new Date().toISOString():null;
+      o.paid=!o.paid;
+      o.paidAt=o.paid?new Date().toISOString():null;
+      o.paidAmount=o.paid?orderReceivable(o):0;
       await persist(); render();
       showToast(o.paid?"Marked as paid":"Marked as unpaid");
       if(t.getAttribute("data-back")==="stmt") openStatement(t.getAttribute("data-v"));
       else if(t.getAttribute("data-keep")) openDetail(id);
       break; }
+    case "openpayment": {
+      const o=ST.orders.find(x=>x.id===id); if(!o)break;
+      const due=orderOutstanding(o);
+      const back=t.getAttribute("data-back"), backV=t.getAttribute("data-v");
+      openModal(sheetHead("Record payment",orderPaidAmt(o)>0?money(orderPaidAmt(o))+" received already · "+money(due)+" left":undefined)
+        +'<div class="field"><label class="lbl">Amount received now</label>'
+        +'<input class="inp" id="payamt" type="number" inputmode="decimal" value="'+due.toFixed(2)+'" placeholder="0.00"></div>'
+        +'<p class="hint">Defaults to the full amount due — change it if this is a partial payment. The remaining balance stays outstanding.</p>'
+        +'<button class="btn-main" data-act="recordpayment" data-id="'+o.id+'"'
+        +(back?' data-back="'+back+'"':'')+(backV?' data-v="'+esc(backV)+'"':'')+'>'+ic("check",18)+' Save payment</button>');
+      break; }
+    case "recordpayment": {
+      const o=ST.orders.find(x=>x.id===id); if(!o)break;
+      const el=document.getElementById("payamt");
+      const amt=Math.max(0,Number(el?el.value:0)||0);
+      if(amt<=0){ showToast("Enter an amount greater than zero","warn"); break; }
+      const total=Math.min(orderReceivable(o),orderPaidAmt(o)+amt);
+      o.paidAmount=total; o.paidAt=new Date().toISOString();
+      o.paid=total>=orderReceivable(o)-0.005; // fully settled once the running total covers the invoice
+      if(o.paid) o.paidAmount=orderReceivable(o);
+      await persist(); closeModal(); render();
+      showToast(o.paid?"Marked as fully paid":money(amt)+" recorded · "+money(orderOutstanding(o))+" still due");
+      if(t.getAttribute("data-back")==="stmt") openStatement(t.getAttribute("data-v"));
+      else openDetail(id);
+      break; }
     case "settle": {
-      const un=ST.orders.filter(o=>o.practice===v&&!o.paid);
+      const un=ST.orders.filter(o=>o.practice===v&&!o.paid&&orderOutstanding(o)>0);
       if(!un.length)break;
-      if(!confirm("Mark all "+un.length+" unpaid orders as paid?"))break;
-      un.forEach(o=>{o.paid=true;o.paidAt=new Date().toISOString();});
-      await persist(); render(); openStatement(v);
+      if(!t.getAttribute("data-confirmed")){
+        openConfirm("Mark all "+un.length+" unpaid orders as paid?","settle",null,v,false,"stmt",null,v);
+        break;
+      }
+      un.forEach(o=>{o.paid=true;o.paidAt=new Date().toISOString();o.paidAmount=orderReceivable(o);});
+      await persist(); closeModal(); render(); openStatement(v);
       showToast("Account settled · "+un.length+" order"+(un.length!==1?"s":"")+" paid");
       break; }
     case "delorder": {
-      if(!confirm("Delete this order permanently? This cannot be undone — consider Cancel instead if you might need the record."))break;
+      if(!t.getAttribute("data-confirmed")){
+        openConfirm("Delete this order permanently? This cannot be undone — consider Cancel instead if you might need the record.","delorder",id,null,true,"detail",id);
+        break;
+      }
       ST.orders=ST.orders.filter(o=>o.id!==id); await persist(); closeModal(); render(); break; }
     case "cancelorder": {
-      if(!confirm("Cancel this order? It stays in your records and reports marked as cancelled, but drops out of the open pipeline."))break;
+      if(!t.getAttribute("data-confirmed")){
+        openConfirm("Cancel this order? It stays in your records and reports marked as cancelled, but drops out of the open pipeline.","cancelorder",id,null,true,"detail",id);
+        break;
+      }
       ST.orders=ST.orders.map(o=>o.id===id?Object.assign({},o,{cancelled:true,cancelledAt:new Date().toISOString()}):o);
       await persist(); closeModal(); render();
       showToast("Order cancelled","warn");
@@ -2017,8 +2355,11 @@ document.addEventListener("click",async function(ev){
       const o=ST.orders.find(x=>x.id===id); if(!o)break;
       closeModal(); openOrderFormEdit(o); break; }
     case "delexp": {
-      if(!confirm("Delete this expense?"))break;
-      ST.expenses=ST.expenses.filter(e=>e.id!==id); await persist(); render(); break; }
+      if(!t.getAttribute("data-confirmed")){
+        openConfirm("Delete this expense?","delexp",id,null,true);
+        break;
+      }
+      ST.expenses=ST.expenses.filter(e=>e.id!==id); await persist(); closeModal(); render(); break; }
 
     case "detail": openDetail(id); break;
     case "stmt": openStatement(v); break;
@@ -2040,6 +2381,48 @@ document.addEventListener("click",async function(ev){
       window.open("https://razorpay.com/gst-number-search/","_blank");
       break; }
 
+    case "remind": {
+      const p=ST.practices.find(x=>x.name===v);
+      if(!p)break;
+      const stats=custStats(p);
+      const msg=reminderText(p,stats);
+      const digits=waDigits(p.phone);
+      if(digits){
+        window.open("https://wa.me/"+digits+"?text="+encodeURIComponent(msg),"_blank");
+      } else if(p.email){
+        window.open("mailto:"+encodeURIComponent(p.email)+"?subject="+encodeURIComponent("Payment reminder")+"&body="+encodeURIComponent(msg),"_blank");
+      } else {
+        showToast("No usable phone or email on file for "+p.name,"warn");
+      }
+      break; }
+
+    case "exportcontacts": {
+      const rows=ST._practiceRows||[];
+      if(!rows.length){ showToast("No customers to export","warn"); break; }
+      const lines=rows.map(p=>[p.name,p.phone||"",p.email||""].filter(Boolean).join(" — ")).join("\n");
+      openModal(sheetHead("Export contacts","Matches whatever's currently filtered ("+rows.length+" customers) — copy for a WhatsApp broadcast list, or download as CSV for Mailchimp/Excel.")
+        +'<div class="field"><textarea id="exportbox" class="inp" rows="9" readonly style="font-family:ui-monospace,monospace;font-size:12px;resize:vertical">'+esc(lines)+'</textarea></div>'
+        +'<button class="btn-main" data-act="copycontacts">'+ic("clip",16)+' Copy all as text</button>'
+        +'<button class="btn-sec" data-act="downloadcontacts">'+ic("download",16)+' Download as CSV</button>');
+      break; }
+
+    case "copycontacts": {
+      const box=document.getElementById("exportbox");
+      if(!box)break;
+      try{ await navigator.clipboard.writeText(box.value); showToast("Copied "+(ST._practiceRows||[]).length+" contacts"); }
+      catch(e){ box.select(); showToast("Couldn't auto-copy — text is selected, copy manually","warn"); }
+      break; }
+
+    case "downloadcontacts": {
+      const rows=ST._practiceRows||[];
+      if(!rows.length){ showToast("No customers to export","warn"); break; }
+      const esc2=s=>'"'+String(s||"").replace(/"/g,'""')+'"';
+      const csv="Name,Phone,Email,City,District,State\n"+rows.map(p=>
+        [p.name,p.phone,p.email,p.city,p.district,p.state].map(esc2).join(",")).join("\n");
+      downloadBlob(csv,"murali_contacts_"+new Date().toISOString().slice(0,10)+".csv","text/csv");
+      showToast("Downloaded "+rows.length+" contacts");
+      break; }
+
     case "psetv": {
       const m=MODAL(); m.querySelectorAll("[data-pf]").forEach(el=>{PE[el.getAttribute("data-pf")]=el.value;});
       PE[t.getAttribute("data-k")]=v; renderPracticeEditor(); break; }
@@ -2048,6 +2431,7 @@ document.addEventListener("click",async function(ev){
         let val=el.value; if(el.getAttribute("data-pf")==="gstin") val=val.toUpperCase().trim();
         PE[el.getAttribute("data-pf")]=val;});
       const name=PE.name.trim(); if(!name)break;
+      if(/\s/.test(PE.email||"")){ showToast("Remove the space from the email address first","warn"); break; }
       const orig=PE.__orig;
       const rec=Object.assign({},PE); delete rec.__orig; rec.name=name;
       if(orig){
@@ -2090,8 +2474,10 @@ document.addEventListener("click",async function(ev){
       const name=isEdit?FS.practice:(FS.mode==="existing"?FS.practice:FS.np.name.trim());
       if(!name){alert("Select or name a customer.");break;}
       if(FS.type==="rx"&&FS.od.sph===""&&FS.os.sph===""){alert("Enter at least one sphere value.");break;}
+      if(!FS.promised){alert("Pick a promised delivery date before saving.");break;}
       if(!isEdit&&FS.mode==="new"){
         if(ST.practices.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert("That customer already exists.");break;}
+        if(/\s/.test(FS.np.email||"")){alert("Remove the space from the customer's email address first.");break;}
         const rec=Object.assign({},FS.np,{name:name,gstin:(FS.np.gstin||"").toUpperCase().trim()});
         ST.practices.push(rec); ST.practices.sort((a,b)=>a.name.localeCompare(b.name));
         PM=pMap();
@@ -2105,6 +2491,7 @@ document.addEventListener("click",async function(ev){
         frameType:FS.frameType,frameSupply:FS.frameSupply,edging:FS.edging,diameter:FS.diameter,
         readerPower:FS.readerPower,description:FS.description,
         qty:FS.qty,price:FS.price,cost:FS.cost,gstRate:FS.gstRate,hsn:FS.hsn,
+        discountType:FS.discountType,discountValue:FS.discountValue,discountCode:(FS.discountCode||"").trim(),
         priority:FS.priority,promised:FS.promised,notes:FS.notes};
       if(isEdit){
         ST.orders=ST.orders.map(o=>{
@@ -2137,6 +2524,8 @@ document.addEventListener("blur",function(ev){
   if(el.getAttribute&&el.getAttribute("data-act")==="emailguard"){
     const box=document.getElementById(el.id+"_sugg");
     if(box){ box.classList.add("hide"); box.innerHTML=""; }
+    emailSpaceCheck(el);
+    if(el.id==="email_pf") refreshPracticeSaveBtn();
   }
 },true);
 
@@ -2168,6 +2557,15 @@ document.addEventListener("input",function(ev){
   }
   if(el.getAttribute&&el.getAttribute("data-act")==="emailguard"){
     updateEmailSuggestions(el);
+    emailSpaceCheck(el);
+    if(el.id==="email_pf") refreshPracticeSaveBtn();
+  }
+  if(el.getAttribute&&el.getAttribute("data-act")==="nameguard"){
+    const name=el.value.trim();
+    const dup=name&&name.toLowerCase()!==PE.__orig.toLowerCase()&&ST.practices.some(p=>p.name.toLowerCase()===name.toLowerCase());
+    const errEl=document.getElementById("pf_name_err");
+    if(errEl) errEl.classList.toggle("hide",!dup);
+    refreshPracticeSaveBtn();
   }
   if(el.getAttribute&&el.getAttribute("data-act")==="pinguard"){
     let v=el.value.replace(/[^0-9]/g,"").slice(0,6);
@@ -2182,9 +2580,8 @@ document.addEventListener("input",function(ev){
   }
   if(FS&&el.getAttribute&&el.getAttribute("data-act")==="calc"){
     grabForm();
-    const qty=Number(FS.qty)||0,tx=qty*(Number(FS.price)||0),cost=qty*(Number(FS.cost)||0);
-    const gst=tx*(Number(FS.gstRate)||0)/100;
-    const mp=document.getElementById("mprev"); if(mp)mp.innerHTML=marginPreview(tx,gst,tx+gst,tx-cost);
+    const tx=oTaxable(FS),gst=oGst(FS),cost=orderCost(FS),disc=oDiscount(FS);
+    const mp=document.getElementById("mprev"); if(mp)mp.innerHTML=marginPreview(tx,gst,tx+gst,tx-cost,disc);
   }
 });
 document.addEventListener("change",function(ev){
@@ -2193,9 +2590,8 @@ document.addEventListener("change",function(ev){
   if(el.getAttribute&&el.getAttribute("data-act")==="rerender"&&FS){grabForm();renderOrderForm();return;}
   if(el.getAttribute&&el.getAttribute("data-act")==="calc"&&FS){
     grabForm();
-    const qty=Number(FS.qty)||0,tx=qty*(Number(FS.price)||0),cost=qty*(Number(FS.cost)||0);
-    const gst=tx*(Number(FS.gstRate)||0)/100;
-    const mp=document.getElementById("mprev"); if(mp)mp.innerHTML=marginPreview(tx,gst,tx+gst,tx-cost);
+    const tx=oTaxable(FS),gst=oGst(FS),cost=orderCost(FS),disc=oDiscount(FS);
+    const mp=document.getElementById("mprev"); if(mp)mp.innerHTML=marginPreview(tx,gst,tx+gst,tx-cost,disc);
     return;
   }
   if(el.id==="restoreFile"&&el.files&&el.files[0]){restore(el.files[0]);el.value="";}
