@@ -755,6 +755,29 @@ function refreshPracticeSaveBtn(){
   const btn=document.getElementById("pf_save");
   if(btn) btn.classList.toggle("dis",!practiceFormValid());
 }
+// Same idea for the order form's promised-date field: it used to trigger a full
+// renderOrderForm() on change, which rebuilds the DOM the native date picker is attached
+// to — on mobile that tears the picker down mid-interaction (looks like it "auto-picks
+// today and closes"). This recomputes validity and updates the Save button in place instead,
+// leaving the date input itself untouched.
+function orderFormValid(){
+  const f=FS; if(!f) return {valid:true,reason:""};
+  const isEdit=!!f.editId;
+  const dupNew=f.mode==="new"&&f.np.name.trim()&&ST.practices.some(p=>p.name.toLowerCase()===f.np.name.trim().toLowerCase());
+  const custOK=isEdit?true:(f.mode==="existing"?!!f.practice:(!!f.np.name.trim()&&!dupNew));
+  const rxOK=f.type!=="rx"||f.od.sph!==""||f.os.sph!=="";
+  const accOK=f.type!=="accessory"||!!f.description.trim();
+  const promisedOK=!!f.promised;
+  return {valid:custOK&&rxOK&&accOK&&promisedOK,
+    reason:!custOK?"Select or name a customer":!rxOK?"Enter at least one sphere value":!accOK?"Add a description":!promisedOK?"Pick a promised delivery date":""};
+}
+function refreshOrderSaveBtn(){
+  grabForm();
+  const r=orderFormValid();
+  const btn=document.getElementById("fs_save"), hint=document.getElementById("fs_hint");
+  if(btn) btn.classList.toggle("dis",!r.valid);
+  if(hint){ hint.textContent=r.reason+(r.reason?".":""); hint.classList.toggle("hide",r.valid); }
+}
 function updateEmailSuggestions(el){
   const box=document.getElementById(el.id+"_sugg");
   if(!box) return;
@@ -1082,8 +1105,6 @@ function jobCard(o){
     +'<div class="card-meta">'+(o.jobRef?'<span class="jobref">'+esc(o.jobRef)+'</span> · ':'')
     +(o.patientRef?esc(o.patientRef)+' · ':'')+fmtDate(o.createdAt)
     +(late&&!cancelled?' · <span class="late">LATE</span>':'')+'</div>'
-    +(o.dispatchMethod&&!cancelled?'<div class="card-meta">'+ic("truck",10)+' '
-      +((DISPATCH_METHODS.find(m=>m[0]===o.dispatchMethod)||["",o.dispatchMethod])[1])+(o.dispatchDetail?" · "+esc(o.dispatchDetail):"")+'</div>':'')
     +'</div>'
     +'<div class="rt">'
     +(cancelled?'<span class="badge" style="color:#DC2626;background:#FEE2E2">Cancelled</span>'
@@ -1092,6 +1113,8 @@ function jobCard(o){
     +'<span class="card-total">'+money(orderReceivable(o))+'</span>'
     +(!o.paid&&orderPaidAmt(o)>0?'<span style="font-size:10px;color:#7C3AED;font-weight:700">'+money0(orderOutstanding(o))+' left</span>'
       :oRate(o)>0?'<span style="font-size:10px;color:#94A3B8">incl '+oRate(o)+'% GST</span>':'')
+    +(o.dispatchMethod&&!cancelled?'<span style="font-size:10px;color:#94A3B8;display:flex;align-items:center;gap:3px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+      +ic("truck",10)+' '+((DISPATCH_METHODS.find(m=>m[0]===o.dispatchMethod)||["",o.dispatchMethod])[1])+(o.dispatchDetail?" · "+esc(o.dispatchDetail):"")+'</span>':'')
     +'</div></div>'
     +(cancelled
       ?'<div class="qbar"><button class="q-det" data-act="detail" data-id="'+o.id+'" style="flex:1">View / Restore '+ic("chev",13)+'</button></div>'
@@ -1961,15 +1984,15 @@ function renderOrderForm(){
       :'')+'</div>'
     +'<div class="mprev" id="mprev">'+marginPreview(taxable,gst,inv,prof,discount)+'</div>'
     +'<div class="row2"><div class="field"><label class="lbl">Promised date <span style="font-weight:400;color:#DC2626">— required</span></label>'
-    +'<input class="inp" type="date" data-f="promised" data-act="rerender" value="'+esc(f.promised)+'"></div>'
+    +'<input class="inp" type="date" id="fs_promised" data-f="promised" data-act="promisedguard" value="'+esc(f.promised)+'"></div>'
     +'<div class="field"><label class="lbl">Priority</label><div style="display:flex;gap:6px">'
     +[["standard","Std"],["urgent","Urgent"]].map(x=>'<button class="opt'+(f.priority===x[0]?" on":"")+(x[0]==="urgent"?" warn":"")
       +'" style="flex:1;padding:11px 4px" data-act="setv" data-k="priority" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div></div></div>'
     +'<label class="paidtog"><input type="checkbox" data-f="paid"'+(f.paid?" checked":"")+'> '+(isEdit?"Paid":"Already paid")+'</label>'
     +'<div class="field"><label class="lbl">Notes</label>'
     +'<input class="inp" data-f="notes" value="'+esc(f.notes)+'" placeholder="Lab instructions, delivery notes…"></div>'
-    +'<button class="btn-main'+(valid?"":" dis")+'" data-act="saveorder">'+ic("check",18)+' '+(isEdit?"Save changes":"Book order")+'</button>'
-    +(valid?'':'<p class="hint">'+(!custOK?"Select or name a customer":!rxOK?"Enter at least one sphere value":!accOK?"Add a description":"Pick a promised delivery date")+'.</p>'), true);
+    +'<button class="btn-main'+(valid?"":" dis")+'" id="fs_save" data-act="saveorder">'+ic("check",18)+' '+(isEdit?"Save changes":"Book order")+'</button>'
+    +'<p class="hint'+(valid?" hide":"")+'" id="fs_hint">'+(!custOK?"Select or name a customer":!rxOK?"Enter at least one sphere value":!accOK?"Add a description":"Pick a promised delivery date")+'.</p>', true);
 }
 function marginPreview(taxable,gst,inv,prof,discount){
   const c=prof>=0?"pos":"neg";
@@ -2589,6 +2612,7 @@ document.addEventListener("change",function(ev){
   const el=ev.target;
   if(el.getAttribute&&el.getAttribute("data-act")==="distsel"&&FS){grabForm();FS.dist=el.value;FS.practice="";renderOrderForm();return;}
   if(el.getAttribute&&el.getAttribute("data-act")==="rerender"&&FS){grabForm();renderOrderForm();return;}
+  if(el.getAttribute&&el.getAttribute("data-act")==="promisedguard"&&FS){refreshOrderSaveBtn();return;}
   if(el.getAttribute&&el.getAttribute("data-act")==="calc"&&FS){
     grabForm();
     const tx=oTaxable(FS),gst=oGst(FS),cost=orderCost(FS),disc=oDiscount(FS);
