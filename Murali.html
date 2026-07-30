@@ -612,6 +612,34 @@ const STATES=["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh
  "Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand",
  "West Bengal","Andaman & Nicobar Islands","Chandigarh","Dadra & Nagar Haveli and Daman & Diu","Delhi",
  "Jammu & Kashmir","Ladakh","Lakshadweep","Puducherry"];
+// District dropdowns for the 5 states this business deals with most — verified against current
+// (2026) sources rather than assumed, since district boundaries change often (Andhra Pradesh
+// alone went from 26 to 28 districts in December 2025). Every other state still gets a free-text
+// district field with autocomplete from your own history, same as before — building and
+// maintaining an accurate list for all 36 states/UTs (~800 districts nationally, and rising) isn't
+// something to hardcode with false confidence.
+const STATE_DISTRICTS={
+ "Telangana":["Adilabad","Bhadradri Kothagudem","Hanumakonda","Hyderabad","Jagtial","Jangaon","Jayashankar Bhupalpally",
+  "Jogulamba Gadwal","Kamareddy","Karimnagar","Khammam","Kumuram Bheem Asifabad","Mahabubabad","Mahabubnagar",
+  "Mancherial","Medak","Medchal–Malkajgiri","Mulugu","Nagarkurnool","Nalgonda","Narayanpet","Nirmal","Nizamabad",
+  "Peddapalli","Rajanna Sircilla","Rangareddy","Sangareddy","Siddipet","Suryapet","Vikarabad","Wanaparthy",
+  "Warangal","Yadadri Bhuvanagiri"],
+ "Andhra Pradesh":["Alluri Sitharama Raju","Anakapalli","Anantapur","Annamayya","Bapatla","Chittoor","East Godavari",
+  "Eluru","Guntur","Kakinada","Konaseema","Krishna","Kurnool","Markapuram","NTR","Nandyal","Palnadu",
+  "Parvathipuram Manyam","Polavaram","Prakasam","SPSR Nellore","Sri Sathya Sai","Srikakulam","Tirupati",
+  "Visakhapatnam","Vizianagaram","West Godavari","YSR Kadapa"],
+ "Tamil Nadu":["Ariyalur","Chengalpattu","Chennai","Coimbatore","Cuddalore","Dharmapuri","Dindigul","Erode",
+  "Kallakurichi","Kancheepuram","Kanyakumari","Karur","Krishnagiri","Madurai","Mayiladuthurai","Nagapattinam",
+  "Namakkal","Nilgiris","Perambalur","Pudukkottai","Ramanathapuram","Ranipet","Salem","Sivaganga","Tenkasi",
+  "Thanjavur","Theni","Thoothukudi","Tiruchirappalli","Tirunelveli","Tirupathur","Tiruppur","Tiruvallur",
+  "Tiruvannamalai","Tiruvarur","Vellore","Viluppuram","Virudhunagar"],
+ "Karnataka":["Bagalkot","Ballari","Belagavi","Bengaluru Rural","Bengaluru Urban","Bidar","Chamarajanagar",
+  "Chikballapur","Chikkamagaluru","Chitradurga","Dakshina Kannada","Davanagere","Dharwad","Gadag","Hassan",
+  "Haveri","Kalaburagi","Kodagu","Kolar","Koppal","Mandya","Mysuru","Raichur","Ramanagara","Shivamogga",
+  "Tumakuru","Udupi","Uttara Kannada","Vijayanagara","Vijayapura","Yadgir"],
+ "Kerala":["Thiruvananthapuram","Kollam","Pathanamthitta","Alappuzha","Kottayam","Idukki","Ernakulam","Thrissur",
+  "Palakkad","Malappuram","Kozhikode","Wayanad","Kannur","Kasaragod"]
+};
 const PERIODS=[{k:"m0",label:"This month"},{k:"m1",label:"Last month"},{k:"m3",label:"Last 3 mo"},
  {k:"fy",label:"This FY"},{k:"fy1",label:"Last FY"},{k:"all",label:"All time"}];
 
@@ -640,8 +668,8 @@ function rxSummary(o){if(o.type!=="rx")return"";
  if(add)s+=(s?"   ":"")+"Add "+dpt(add);return s;}
 const emptyEye=()=>({sph:"",cyl:"",axis:"",add:"",prism:"",base:"—"});
 const emptyPractice=()=>({name:"",contact:"",phone:"",email:"",gstin:"",addr1:"",addr2:"",city:"",district:"",
- state:"",pin:"",area:"",terms:"30",notes:""});
-const emptyBiz=()=>({name:"",gstin:"",state:"",gst:"12",hsnLens:"9001",hsnFrame:"9003",hsnReader:"9004"});
+ state:"Telangana",pin:"",area:"",terms:"30",notes:""});
+const emptyBiz=()=>({name:"",gstin:"",state:"Telangana",gst:"12",hsnLens:"9001",hsnFrame:"9003",hsnReader:"9004"});
 
 /* ---- GSTIN validation (format + official checksum) & state lookup ---- */
 // 15-char GSTIN: [state 2][PAN 10][entity 1][Z][checksum 1]
@@ -1397,11 +1425,19 @@ const MODAL=()=>document.getElementById("modal");
 function closeModal(){MODAL().innerHTML="";MODAL().classList.add("hide");}
 function openModal(html,keepScroll){
   const m=MODAL();
-  let prevScroll=0;
-  if(keepScroll){ const s=m.querySelector(".sheet"); if(s) prevScroll=s.scrollTop; }
+  const existingSheet=m.querySelector(".sheet");
+  if(existingSheet&&!m.classList.contains("hide")){
+    // Modal is already open (e.g. toggling "existing/new customer", expanding a section) —
+    // update the sheet's content in place instead of tearing down and recreating the overlay
+    // and sheet elements. Recreating them replayed the fade-in/slide-up entrance animation on
+    // every single toggle, which is what looked like the whole app "flashing" or reloading.
+    const prevScroll=keepScroll?existingSheet.scrollTop:0;
+    existingSheet.innerHTML=html;
+    if(keepScroll&&prevScroll>0) existingSheet.scrollTop=prevScroll;
+    return;
+  }
   m.innerHTML='<div class="overlay" data-act="overlay"><div class="sheet" data-stop="1">'+html+'</div></div>';
   m.classList.remove("hide");
-  if(keepScroll && prevScroll>0){ const s=m.querySelector(".sheet"); if(s) s.scrollTop=prevScroll; }
 }
 const sheetHead=(title,sub,extra)=>'<div class="handle"></div><div class="sheet-head"><div style="min-width:0">'
   +'<h2>'+esc(title)+'</h2>'+(sub?'<p class="sheet-sub">'+esc(sub)+'</p>':'')+'</div>'
@@ -1646,9 +1682,13 @@ function renderPracticeEditor(){
     +'<div class="row2"><div class="field"><label class="lbl">City / town</label>'+inp("city","e.g. Hyderabad")+'</div>'
     +'<div class="field"><label class="lbl">PIN code</label>'+inp("pin","500001","tel",' maxlength="6" data-act="pinguard"')+'</div></div>'
     +(cities.length?'<div style="margin:-4px 0 13px">'+chips("city",cities.slice(0,8))+'</div>':'')
-    +'<div class="field"><label class="lbl">District</label>'+inp("district","e.g. Ranga Reddy")+chips("district",dists)+'</div>'
+    +'<div class="field"><label class="lbl">District</label>'
+    +(STATE_DISTRICTS[f.state]
+      ? '<select class="inp" data-pf="district"><option value="">Select…</option>'+optsOf(STATE_DISTRICTS[f.state],f.district)+'</select>'
+      : inp("district","e.g. Ranga Reddy")+chips("district",dists))
+    +'</div>'
     +'<div class="field"><label class="lbl">State <span style="font-weight:400;color:#94A3B8">— sets IGST vs CGST+SGST</span></label>'
-    +'<select class="inp" data-pf="state"><option value="">Select…</option>'+optsOf(STATES,f.state)+'</select></div>'
+    +'<select class="inp" data-pf="state" data-act="prerender"><option value="">Select…</option>'+optsOf(STATES,f.state)+'</select></div>'
     +'<div class="field"><label class="lbl">Delivery route</label>'+inp("area","e.g. Tuesday city run")+chips("area",areas)+'</div>'
     +'<div class="field"><label class="lbl">Payment terms</label><div class="chips">'
     +TERMS_OPTS.map(t=>'<button class="chip'+(String(f.terms)===t?" on":"")+'" data-act="psetv" data-k="terms" data-v="'+t+'">'
@@ -1879,12 +1919,15 @@ function renderOrderForm(){
       +'<div class="field"><label class="lbl">Address</label>'+ni("addr1","Shop no., street")+'</div>'
       +'<div class="row2"><div class="field"><label class="lbl">City / town</label>'+ni("city","e.g. Hyderabad")+'</div>'
       +'<div class="field"><label class="lbl">PIN code</label>'+ni("pin","500001","tel",' maxlength="6" data-act="pinguard"')+'</div></div>'
-      +'<div class="field"><label class="lbl">District</label>'+ni("district","e.g. Ranga Reddy")
-      +(dists.length>1?'<div class="chips" style="margin-top:8px">'+dists.filter(d=>d!=="All").map(d=>
-        '<button class="chip'+(f.np.district===d?" on":"")+'" data-act="npsetv" data-k="district" data-v="'+esc(d)+'">'+esc(d)+'</button>').join("")+'</div>':'')
+      +'<div class="field"><label class="lbl">District</label>'
+      +(STATE_DISTRICTS[f.np.state]
+        ? '<select class="inp" data-nf="district"><option value="">Select…</option>'+optsOf(STATE_DISTRICTS[f.np.state],f.np.district)+'</select>'
+        : ni("district","e.g. Ranga Reddy")
+          +(dists.length>1?'<div class="chips" style="margin-top:8px">'+dists.filter(d=>d!=="All").map(d=>
+            '<button class="chip'+(f.np.district===d?" on":"")+'" data-act="npsetv" data-k="district" data-v="'+esc(d)+'">'+esc(d)+'</button>').join("")+'</div>':''))
       +'</div>'
       +'<div class="field"><label class="lbl">State</label>'
-      +'<select class="inp" data-nf="state"><option value="">Select…</option>'+optsOf(STATES,f.np.state)+'</select></div>'
+      +'<select class="inp" data-nf="state" data-act="rerender"><option value="">Select…</option>'+optsOf(STATES,f.np.state)+'</select></div>'
       +'<div class="field"><label class="lbl">Payment terms</label><div class="chips">'
       +TERMS_OPTS.map(t=>'<button class="chip'+(String(f.np.terms)===t?" on":"")+'" data-act="npsetv" data-k="terms" data-v="'+t+'">'
         +(t==="0"?"On delivery":t+" days")+'</button>').join("")+'</div></div>';
@@ -2612,6 +2655,10 @@ document.addEventListener("change",function(ev){
   const el=ev.target;
   if(el.getAttribute&&el.getAttribute("data-act")==="distsel"&&FS){grabForm();FS.dist=el.value;FS.practice="";renderOrderForm();return;}
   if(el.getAttribute&&el.getAttribute("data-act")==="rerender"&&FS){grabForm();renderOrderForm();return;}
+  if(el.getAttribute&&el.getAttribute("data-act")==="prerender"&&PE){
+    MODAL().querySelectorAll("[data-pf]").forEach(x=>{PE[x.getAttribute("data-pf")]=x.value;});
+    renderPracticeEditor(); return;
+  }
   if(el.getAttribute&&el.getAttribute("data-act")==="promisedguard"&&FS){refreshOrderSaveBtn();return;}
   if(el.getAttribute&&el.getAttribute("data-act")==="calc"&&FS){
     grabForm();
