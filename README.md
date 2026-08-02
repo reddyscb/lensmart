@@ -1,7 +1,7 @@
 # lensmart
 # Murali — Lens Order Book
 
-A single-file, installable web app for optical wholesalers to manage prescription lens orders, customer accounts, GST invoicing, and profitability — offline-first, no backend, no monthly fee.
+A single-file, installable web app for optical wholesalers to manage prescription lens orders, customer accounts, GST invoicing, and profitability — offline-first, no backend, no monthly fee
 
 Built for the Indian market (GST, CGST/SGST/IGST handling, GSTIN validation).
 
