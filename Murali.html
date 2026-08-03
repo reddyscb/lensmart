@@ -62,15 +62,16 @@ h1.brand{margin:0;font-size:22px;font-weight:700;letter-spacing:-.03em}
 .owed-l{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
 .owed-v{font-size:28px;font-weight:800;margin-top:3px;letter-spacing:-.02em}
 
-.piperow{display:flex;gap:8px;padding:0 18px 14px}
-.pipe{flex:1;background:#fff;border:1.5px solid #EEF2F7;border-radius:15px;padding:13px 6px 12px;display:flex;
- flex-direction:column;align-items:center;gap:5px;box-shadow:0 1px 2px rgba(15,23,42,.04);
+.piperow{display:flex;gap:7px;padding:0 18px 12px}
+.pipe{flex:1;min-width:0;background:#fff;border:1.5px solid #EEF2F7;border-radius:12px;padding:8px 9px;display:flex;
+ align-items:center;gap:6px;box-shadow:0 1px 2px rgba(15,23,42,.04);
  transition:transform .1s;animation:cardin .32s cubic-bezier(.22,.9,.35,1) backwards}
 .pipe:nth-child(1){animation-delay:40ms}.pipe:nth-child(2){animation-delay:75ms}.pipe:nth-child(3){animation-delay:110ms}
-.pipe:active{transform:scale(.94)}
+.pipe:active{transform:scale(.96)}
 .pipe.on{border-color:currentColor;box-shadow:0 2px 8px -2px rgba(3,105,161,.2)}
-.pipe-n{font-size:19px;font-weight:800;color:#0F172A;letter-spacing:-.01em}
-.pipe-l{font-size:9.6px;color:#64748B;text-align:center;line-height:1.25;font-weight:500}
+.pipe-txt{min-width:0;display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}
+.pipe-n{font-size:15px;font-weight:800;color:#0F172A;letter-spacing:-.01em}
+.pipe-l{font-size:8.6px;color:#64748B;text-align:left;line-height:1.2;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 
 .searchwrap{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E2E8F0;border-radius:13px;padding:11px 13px;margin-bottom:10px}
 .sortbtn{flex-shrink:0;display:flex;align-items:center;background:#fff;border:1px solid #E2E8F0;border-radius:13px;padding:0 14px;color:#334155}
@@ -564,6 +565,8 @@ function downloadBlob(data,filename,mime){
 }
 
 /* ============ REFERENCE DATA ============ */
+const APP_VERSION="1.0.0"; // bump manually when you ship a change — shown small in Settings
+const APP_BUILD_DATE="02/08/2026"; // DD/MM/YYYY — update alongside APP_VERSION
 const STAGES={
  received:{label:"Order placed",short:"Placed",color:"#64748B",bg:"#F1F5F9"},
  lab:{label:"At lab",short:"At lab",color:"#B45309",bg:"#FEF3C7"},
@@ -612,7 +615,12 @@ const READER_POWERS=["+1.00","+1.25","+1.50","+1.75","+2.00","+2.25","+2.50","+2
 const EXPENSE_CATS=["Stock purchase","Lab / surfacing charges","Delivery & transport","Rent & utilities","Salaries & wages",
  "Equipment","Marketing","Insurance","GST & taxes paid","Other"];
 const TERMS_OPTS=["0","7","15","30","45","60"];
-const SORT_OPTS=[["date","Date placed"],["customer","Dealer"],["city","City"]];
+const SORT_OPTS=[["date","Date placed"],["customer","Dealer"],["city","City"],["orderno","Order no."]];
+// Deliberately separate from PERIODS (used by Reports) — the Orders list is for day-to-day
+// operational work, not deep history, so it only offers short, recent windows. Reaching further
+// back than "Last 3 mo" is what the Excel export is for, not this screen.
+const ORDER_PERIODS=[{k:"today",label:"Today"},{k:"week",label:"This week"},{k:"m0",label:"This month"},
+ {k:"m1",label:"Last month"},{k:"m3",label:"Last 3 mo"}];
 const GST_RATES=["0","5","12","18","28"];
 // Standard fallbacks per the GST 2.0 structure effective 22 Sept 2025, which scrapped the 12%
 // optical slab: corrective/prescription lenses dropped 12% -> 5% (HSN 9001), frames sit at 18%
@@ -3570,6 +3578,20 @@ function genOrderNo(dealerName,d){
   const count=ST.orders.filter(o=>o.practice===dealerName&&(()=>{const c=new Date(o.createdAt);return c.getFullYear()===y&&c.getMonth()===m;})()).length;
   return slugifyDealer(dealerName)+"-"+ddmmyyyy(d)+"-"+String(count+1).padStart(3,"0");
 }
+// Recomputes Customer rate (excl GST) from Bonzer's reference price minus the current discount,
+// whenever the item, discount type, or discount value changes. Deliberately NOT called when the
+// user is typing directly into the price field itself — that would fight their keystrokes. The
+// field stays a normal editable input either way, so this is a smart starting point, not a lock.
+function syncPriceFromDiscount(){
+  const bp=itemBonzerPrice(FS);
+  if(bp==null) return; // no catalogue item selected — nothing to derive the rate from
+  const qty=Math.max(1,Number(FS.qty)||1);
+  const val=Number(FS.discountValue)||0;
+  let rate=bp;
+  if(FS.discountType==="pct") rate=bp*(1-Math.min(100,Math.max(0,val))/100);
+  else if(FS.discountType==="flat") rate=Math.max(0,bp-(Math.max(0,val)/qty)); // flat is a TOTAL amount across the line, so divide across qty to get the per-unit rate
+  FS.price=rate.toFixed(2);
+}
 function orderFormValid(){
   const f=FS; if(!f) return {valid:true,reason:""};
   const isEdit=!!f.editId;
@@ -3579,8 +3601,10 @@ function orderFormValid(){
   const brandNameOK=f.brandOther||(BRAND_NAMES[f.brand]||[]).length<=1||!!f.brandName.trim();
   const itemOK=f.brandOther||((ITEM_HIERARCHY[f.brand]||{})[f.brandName]||[]).length<=1||!!f.item.trim();
   const promisedOK=!!f.promised;
-  return {valid:custOK&&rxOK&&brandOK&&brandNameOK&&itemOK&&promisedOK,
-    reason:!custOK?"Select a dealer":!brandOK?"Enter the master brand":!brandNameOK?"Pick a brand name":!itemOK?"Pick an item":!rxOK?"Enter at least one sphere value":!promisedOK?"Pick a promised delivery date":""};
+  const rxViolations=rxRangeViolations(f);
+  return {valid:custOK&&rxOK&&brandOK&&brandNameOK&&itemOK&&promisedOK&&!rxViolations.length,
+    reason:!custOK?"Select a dealer":!brandOK?"Enter the master brand":!brandNameOK?"Pick a brand name":!itemOK?"Pick an item":!rxOK?"Enter at least one sphere value":!promisedOK?"Pick a promised delivery date":rxViolations.length?"Fix values outside this item's supported range":"",
+    violations:rxViolations};
 }
 function refreshOrderSaveBtn(){
   grabForm();
@@ -3588,6 +3612,11 @@ function refreshOrderSaveBtn(){
   const btn=document.getElementById("fs_save"), hint=document.getElementById("fs_hint");
   if(btn) btn.classList.toggle("dis",!r.valid);
   if(hint){ hint.textContent=r.reason+(r.reason?".":""); hint.classList.toggle("hide",r.valid); }
+  const warn=document.getElementById("fs_rxwarn");
+  if(warn){
+    warn.innerHTML=r.violations.map(w=>'<div>'+esc(w)+'</div>').join("");
+    warn.classList.toggle("hide",!r.violations.length);
+  }
 }
 function updateEmailSuggestions(el){
   const box=document.getElementById(el.id+"_sugg");
@@ -3609,7 +3638,36 @@ function gstinFieldExtra(id){
 
 /* ---- money maths (GST-aware) ---- */
 const oQty=o=>Number(o.qty)||0;
-const oGross=o=>oQty(o)*(Number(o.price)||0);            // taxable value BEFORE any discount
+// When an item is selected, Gross is based on Bonzer's own reference price for that exact item
+// (so "Discount" naturally means "how much less than Bonzer's price you're charging"), rather
+// than the typed rate. Falls back to the typed rate when there's no catalogue item to reference
+// (custom "Other" brands, or historical orders from before this feature existed) — same as the
+// original behaviour. Discount/Taxable/GST/Invoice keep their exact original formula shape.
+const itemBonzerPrice=o=>{const d=ITEM_DETAILS[o.itemId]; return d?d[0]:null;};
+// Dia/SPH/ADD values outside the selected item's supported range (per ITEM_DETAILS). Shared by
+// the warning banner in the order form and the save-validity checks, so both stay in sync.
+function rxRangeViolations(f){
+  const detail=ITEM_DETAILS[f.itemId];
+  const out=[];
+  if(!detail) return out;
+  const diaVal=Number(f.diameter);
+  if(f.diameter!==""&&!isNaN(diaVal)&&detail[3]!=null&&(diaVal<detail[3]||diaVal>detail[4]))
+    out.push("Dia "+f.diameter+"mm is outside this item's "+detail[3]+"–"+detail[4]+"mm range");
+  ["od","os"].forEach(eye=>{
+    const sph=f[eye].sph;
+    if(sph!==""&&sph!=null&&detail[5]!=null){
+      const v=Number(sph);
+      if(v<detail[5]||v>detail[6]) out.push(eye.toUpperCase()+" SPH "+dpt(v)+" is outside this item's "+dpt(detail[5])+" to "+dpt(detail[6])+" range");
+    }
+    const add=f[eye].add;
+    if(add!==""&&add!=null&&detail[7]!=null){
+      const v=Number(add);
+      if(v<detail[7]||v>detail[8]) out.push(eye.toUpperCase()+" ADD "+dpt(v)+" is outside this item's "+dpt(detail[7])+" to "+dpt(detail[8])+" range");
+    }
+  });
+  return out;
+}
+const oGross=o=>{const bp=itemBonzerPrice(o); return oQty(o)*(bp!=null?bp:(Number(o.price)||0));};            // taxable value BEFORE any discount
 // Optional per-order discount, applied before GST (standard practice — GST is charged on the
 // discounted value). Absent/"none" on every pre-existing order, so nothing already saved changes.
 const oDiscount=o=>{
@@ -3644,7 +3702,9 @@ const geoLine=p=>[p.city,p.district,p.state].filter(Boolean).join(" · ");
 
 /* ---- periods (Indian FY: 1 Apr – 31 Mar) ---- */
 function fyStart(d){const y=d.getFullYear();return d.getMonth()>=3?y:y-1;}
-function periodRange(k){const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+function periodRange(k){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),d=n.getDate();
+ if(k==="today")return[new Date(y,m,d),new Date(y,m,d+1)];
+ if(k==="week"){const dow=n.getDay(),diff=dow===0?-6:1-dow;const mon=new Date(y,m,d+diff);return[mon,new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+7)];}
  if(k==="m0")return[new Date(y,m,1),new Date(y,m+1,1)];
  if(k==="m1")return[new Date(y,m-1,1),new Date(y,m,1)];
  if(k==="m3")return[new Date(y,m-2,1),new Date(y,m+1,1)];
@@ -3684,7 +3744,7 @@ function custStats(p,preOrders){
   const oldest=unpaid.reduce((m,o)=>!m||new Date(o.createdAt)<new Date(m)?o.createdAt:m,null);
   const lastOrder=co.reduce((m,o)=>!m||new Date(o.createdAt)>new Date(m)?o.createdAt:m,null);
   return {jobs:co.length,billed:billed,paid:paidAmt,owed:billed-paidAmt,unpaidCount:unpaid.length,
-    oldest:oldest,lastOrder:lastOrder,quietDays:lastOrder?daysAgo(lastOrder):null};
+    oldest:oldest,lastOrder:lastOrder,quietDays:lastOrder?daysAgo(lastOrder):Infinity};
 }
 // Normalises a stored phone number into the plain digits-with-country-code format wa.me
 // needs (no +, no spaces, no leading 0). Assumes India (91) when a bare 10-digit mobile
@@ -3706,7 +3766,7 @@ function reminderText(p,stats){
 /* ============ STATE ============ */
 const ST={
   orders:[], practices:[], expenses:[], biz:emptyBiz(),
-  nav:"orders", filter:"all", query:"", period:"m0", orderPeriod:"all", repView:"overview", sortBy:"value", orderSort:"date",
+  nav:"orders", filter:"all", query:"", period:"m0", orderPeriod:"m0", repView:"overview", sortBy:"value", orderSort:"date",
   pDist:"All", pQuery:"", pFilter:"all", discView:"code", ready:false, storeMode:"memory"
 };
 const pMap=()=>{const m={};ST.practices.forEach(p=>m[p.name]=p);return m;};
@@ -3865,18 +3925,19 @@ function viewOrders(){
   list=list.slice().sort((a,b)=>{
     if(ST.orderSort==="customer") return a.practice.localeCompare(b.practice)||new Date(b.createdAt)-new Date(a.createdAt);
     if(ST.orderSort==="city") return cityOf(a.practice).localeCompare(cityOf(b.practice))||new Date(b.createdAt)-new Date(a.createdAt);
+    if(ST.orderSort==="orderno") return (a.orderNo||"").localeCompare(b.orderNo||"")||new Date(b.createdAt)-new Date(a.createdAt);
     return new Date(b.createdAt)-new Date(a.createdAt); // date placed, most recent first
   });
 
-  const pipes=[["labgrp",stats.lab,"At lab / awaiting",STAGES.lab.color,"flask"],
-    ["ready",stats.ready,"Ready to dispatch",STAGES.ready.color,"pkg"],
+  const pipes=[["labgrp",stats.lab,"At lab / waiting",STAGES.lab.color,"flask"],
+    ["ready",stats.ready,"Shipment received",STAGES.ready.color,"pkg"],
     ["out",stats.out,"Out for delivery",STAGES.out.color,"truck"]];
 
   return '<div class="owed"><div><div class="owed-l">Outstanding (incl GST)</div><div class="owed-v">'+money(stats.owed)+'</div></div>'
     +'<span style="opacity:.32">'+ic("wallet",30)+'</span></div>'
     +'<div class="piperow">'+pipes.map(p=>
       '<button class="pipe'+(f===p[0]?" on":"")+'" style="color:'+p[3]+'" data-act="pipe" data-v="'+p[0]+'">'
-      +ic(p[4],18)+'<span class="pipe-n">'+p[1]+'</span><span class="pipe-l">'+p[2]+'</span></button>').join("")+'</div>'
+      +ic(p[4],16)+'<span class="pipe-txt"><span class="pipe-n">'+p[1]+'</span><span class="pipe-l">'+p[2]+'</span></span></button>').join("")+'</div>'
     +'<div class="pad">'
     +'<div style="display:flex;gap:8px;margin-bottom:10px">'
     +'<div class="searchwrap" style="flex:1;margin-bottom:0">'+ic("search",15)+'<input id="q" placeholder="Shop, city, order no…" value="'+esc(ST.query)+'">'
@@ -3888,8 +3949,7 @@ function viewOrders(){
       '<button class="chip'+(f===x[0]?" on":"")+'" data-act="filter" data-v="'+x[0]+'">'+x[1]+'</button>').join("")
     +'</div>'
     +'<div class="chips scrollx" style="margin-bottom:12px">'
-    +PERIODS.map(p=>'<button class="chip'+(ST.orderPeriod===p.k?" on":"")+'" data-act="operiod" data-v="'+p.k+'">'
-      +(p.k==="fy"?fyLabel("fy"):p.k==="fy1"?fyLabel("fy1"):p.label)+'</button>').join("")
+    +ORDER_PERIODS.map(p=>'<button class="chip'+(ST.orderPeriod===p.k?" on":"")+'" data-act="operiod" data-v="'+p.k+'">'+p.label+'</button>').join("")
     +'</div>'
     +'<div class="list">'
     +(list.length?list.map(jobCard).join("")
@@ -3960,9 +4020,10 @@ function viewPractices(){
   const base=ST.practices.filter(p=>ST.pDist==="All"||p.district===ST.pDist)
     .filter(p=>!ST.pQuery.trim()||[p.name,p.city,p.district,p.state,p.pin,p.contact,p.gstin].join(" ").toLowerCase().includes(ST.pQuery.toLowerCase()))
     .map(p=>Object.assign({},p,custStats(p,ordersByDealer[p.name]||[])));
-  const isQuiet=p=>p.jobs>0&&p.quietDays!==null&&p.quietDays>=WINBACK_DAYS;
-  const owedCount=base.filter(p=>p.owed>0).length, quietCount=base.filter(isQuiet).length;
-  let rows=base.filter(p=>ST.pFilter==="owed"?p.owed>0:ST.pFilter==="quiet"?isQuiet(p):true)
+  const isQuiet=p=>p.quietDays>=WINBACK_DAYS;
+  const isBonzer=p=>p.bonzerProgram==="yes";
+  const owedCount=base.filter(p=>p.owed>0).length, quietCount=base.filter(isQuiet).length, bonzerCount=base.filter(isBonzer).length;
+  let rows=base.filter(p=>ST.pFilter==="owed"?p.owed>0:ST.pFilter==="quiet"?isQuiet(p):ST.pFilter==="bonzer"?isBonzer(p):true)
     .sort((a,b)=>b.owed-a.owed||b.billed-a.billed);
   ST._practiceRows=rows; // used by the export-contacts action, so export always matches what's on screen
 
@@ -3973,6 +4034,7 @@ function viewPractices(){
     +'<button class="chip'+(ST.pFilter==="all"?" on":"")+'" data-act="pfilter" data-v="all">All '+base.length+'</button>'
     +'<button class="chip'+(ST.pFilter==="owed"?" on":"")+'" data-act="pfilter" data-v="owed">Outstanding '+owedCount+'</button>'
     +'<button class="chip'+(ST.pFilter==="quiet"?" on":"")+'" data-act="pfilter" data-v="quiet">Quiet '+WINBACK_DAYS+'+d '+quietCount+'</button>'
+    +'<button class="chip'+(ST.pFilter==="bonzer"?" on":"")+'" data-act="pfilter" data-v="bonzer">Bonzer Partnership '+bonzerCount+'</button>'
     +'</div>'
     +(dists.length>1?'<div class="chips scrollx" style="margin-bottom:12px">'+dists.map(d=>
       '<button class="chip'+(ST.pDist===d?" on":"")+'" data-act="pdist" data-v="'+esc(d)+'">'+esc(d)+'</button>').join("")+'</div>':'')
@@ -3988,7 +4050,7 @@ function viewPractices(){
       +'<div class="cust-meta">'+(p.city?ic("pin",10)+' '+esc([p.city,p.district].filter(Boolean).join(" · "))+' · ':'')
       +p.jobs+' order'+(p.jobs!==1?"s":"")+' · '+money0(p.billed)+'</div>'
       +(p.owed>0?'<div class="cust-owed">'+money(p.owed)+' outstanding'+(p.oldest?" · "+daysAgo(p.oldest)+"d":"")+'</div>':'')
-      +(isQuiet(p)?'<div class="cust-quiet">'+ic("timer",11)+' No orders in '+p.quietDays+'d</div>':'')
+      +(isQuiet(p)?'<div class="cust-quiet">'+ic("timer",11)+' '+(p.jobs>0?"No orders in "+p.quietDays+"d":"No orders yet")+'</div>':'')
       +'</div>'
       +(p.owed>0&&(p.phone||p.email)?'<button class="iconbtn" data-act="remind" data-v="'+esc(p.name)+'" title="Send payment reminder">'+ic("message",15)+'</button>':'')
       +'<button class="iconbtn" data-act="editpractice" data-v="'+esc(p.name)+'">'+ic("pencil",15)+'</button>'
@@ -4290,7 +4352,8 @@ function openSettings(){
     +'<div class="sectitle">Bonzer dealer import</div>'
     +'<div class="infobox">'+BONZER_DEALER_SEED.length+' dealers from Bonzer\'s system, ready to import. Only names that don\'t already exist get added — safe to tap even if you\'ve done this before. Everything except name, phone (where genuine), and Bonzer\'s dealer ID starts blank — address, GSTIN, district and payment terms still need filling in per dealer.</div>'
     +'<button class="btn-sec" data-act="importbonzerdealers">'+ic("upload",16)+' Import '+BONZER_DEALER_SEED.length+' Bonzer dealers</button>'
-    +'<button class="btn-main" data-act="savebiz">'+ic("check",18)+' Save settings</button>', true);
+    +'<button class="btn-main" data-act="savebiz">'+ic("check",18)+' Save settings</button>'
+    +'<p style="text-align:center;font-size:9.5px;color:#CBD5E1;margin:14px 0 0;letter-spacing:.02em">Murali v'+APP_VERSION+' · '+APP_BUILD_DATE+'</p>', true);
 }
 
 /* ============ ORDER DETAIL ============ */
@@ -4535,13 +4598,22 @@ function openWheelPicker(eye,key){
   grabForm();
   const cfg=WHEEL_CFG[key];
   const cur=FS[eye][key];
+  // For SPH/ADD, narrow the wheel to the selected item's supported range (if any) so the
+  // picker can't offer a value that would trip the Rx range warning in the first place.
+  let vals=cfg.vals;
+  if(key==="sph"||key==="add"){
+    const detail=ITEM_DETAILS[FS.itemId];
+    const lo=detail?(key==="sph"?detail[5]:detail[7]):null;
+    const hi=detail?(key==="sph"?detail[6]:detail[8]):null;
+    if(lo!=null&&hi!=null) vals=cfg.vals.filter(v=>v>=lo&&v<=hi);
+  }
   if(key==="axis"){
     const n = cur===""||cur==null ? null : Number(cur);
     WP={eye:eye,key:key,cfg:cfg,
       tens: n==null ? 0 : Math.floor(n/5)*5,
       ones: n==null ? 0 : n%5};
   } else {
-    WP={eye:eye,key:key,cfg:cfg,value:cur===""||cur==null?null:Number(cur)};
+    WP={eye:eye,key:key,cfg:cfg,vals:vals,value:cur===""||cur==null?null:Number(cur)};
   }
   renderWheelPicker();
 }
@@ -4549,6 +4621,8 @@ function renderWheelPicker(){
   if(!WP) return; // defensive: nothing to render if the picker state was cleared out from under us
   const cfg=WP.cfg;
   const isAxis = WP.key==="axis";
+  const vals=WP.vals||cfg.vals;
+  const restricted=!isAxis&&vals!==cfg.vals&&vals.length;
   const wheelsHtml = isAxis
     ? '<div class="dualwheel">'
       +'<div class="wheelbox"><div class="fadetop"></div><div class="fadebot"></div><div class="selbar"></div><div class="track" id="wheelTrackTens"></div></div>'
@@ -4558,7 +4632,8 @@ function renderWheelPicker(){
     : '<div class="wheelbox"><div class="fadetop"></div><div class="fadebot"></div><div class="selbar"></div><div class="track" id="wheelTrack"></div></div>';
   const html='<div class="handle"></div>'
     +'<div class="wp-title">'+cfg.label+' <span class="wp-eye">'+(WP.eye==="od"?"OD (Right)":"OS (Left)")+'</span></div>'
-    +(isAxis?'<div class="wp-hint">Common: 180 (horizontal) · 90 (vertical)</div>':'')
+    +(isAxis?'<div class="wp-hint">Common: 180 (horizontal) · 90 (vertical)</div>'
+      :restricted?'<div class="wp-hint">This item supports '+cfg.fmt(Math.min.apply(null,vals))+' to '+cfg.fmt(Math.max.apply(null,vals))+'</div>':'')
     +wheelsHtml
     +'<div class="wp-actions">'
     +'<button class="wp-clear" data-act="wheelclear">Clear</button>'
@@ -4571,7 +4646,8 @@ function renderWheelPicker(){
     buildOneWheel("wheelTrackOnes", [0,1,2,3,4,5,6,7,8,9],
       v=>String(v), 0, ()=>WP.ones, v=>{WP.ones=v;});
   } else {
-    buildOneWheel("wheelTrack", cfg.vals, cfg.fmt, cfg.zero, ()=>WP.value, v=>{WP.value=v;});
+    const zeroVal=vals.indexOf(cfg.zero)!==-1?cfg.zero:vals[Math.floor((vals.length-1)/2)];
+    buildOneWheel("wheelTrack", vals, cfg.fmt, zeroVal, ()=>WP.value, v=>{WP.value=v;});
   }
 }
 function buildOneWheel(elId, vals, fmt, zeroVal, getCurrent, setCurrent){
@@ -4692,7 +4768,9 @@ function renderOrderForm(){
   const brandNameOK=f.brandOther||(BRAND_NAMES[f.brand]||[]).length<=1||!!f.brandName.trim();
   const itemOK=f.brandOther||((ITEM_HIERARCHY[f.brand]||{})[f.brandName]||[]).length<=1||!!f.item.trim();
   const promisedOK=!!f.promised;
-  const valid=custOK&&rxOK&&brandOK&&brandNameOK&&itemOK&&promisedOK;
+  const detail=ITEM_DETAILS[f.itemId]; // [price,purchasePrice,tax,diaMin,diaMax,sphMin,sphMax,addMin,addMax,fittingHeights]
+  const rxViolations=rxRangeViolations(f);
+  const valid=custOK&&rxOK&&brandOK&&brandNameOK&&itemOK&&promisedOK&&!rxViolations.length;
   const recentCodes=[...new Set(ST.orders.slice().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))
     .map(o=>(o.discountCode||"").trim()).filter(Boolean))].slice(0,6);
 
@@ -4717,26 +4795,7 @@ function renderOrderForm(){
 
   const brandOpts=BRAND_NAMES[f.brand]||[];
   const itemOpts=(ITEM_HIERARCHY[f.brand]||{})[f.brandName]||[];
-  const detail=ITEM_DETAILS[f.itemId]; // [price,purchasePrice,tax,diaMin,diaMax,sphMin,sphMax,addMin,addMax,fittingHeights]
   const fhOpts=detail&&detail[9]?detail[9].split(",").filter(Boolean):[];
-  const rxViolations=[];
-  if(detail){
-    const diaVal=Number(f.diameter);
-    if(f.diameter!==""&&!isNaN(diaVal)&&detail[3]!=null&&(diaVal<detail[3]||diaVal>detail[4]))
-      rxViolations.push("Dia "+f.diameter+"mm is outside this item's "+detail[3]+"–"+detail[4]+"mm range");
-    ["od","os"].forEach(eye=>{
-      const sph=f[eye].sph;
-      if(sph!==""&&sph!=null&&detail[5]!=null){
-        const v=Number(sph);
-        if(v<detail[5]||v>detail[6]) rxViolations.push(eye.toUpperCase()+" SPH "+dpt(v)+" is outside this item's "+dpt(detail[5])+" to "+dpt(detail[6])+" range");
-      }
-      const add=f[eye].add;
-      if(add!==""&&add!=null&&detail[7]!=null){
-        const v=Number(add);
-        if(v<detail[7]||v>detail[8]) rxViolations.push(eye.toUpperCase()+" ADD "+dpt(v)+" is outside this item's "+dpt(detail[7])+" to "+dpt(detail[8])+" range");
-      }
-    });
-  }
   const orderNoDisplay=isEdit?f.orderNo:(f.practice?genOrderNo(f.practice,new Date()):"");
   const rxInner='<div class="field"><label class="lbl">Order no. <span style="font-weight:400;color:#94A3B8">— auto-generated</span></label>'
     +'<div class="inp" style="background:#F8FAFC;color:#64748B;display:flex;align-items:center">'
@@ -4777,7 +4836,7 @@ function renderOrderForm(){
         const disp = v===""||v==null ? "—" : WHEEL_CFG[k].fmt(Number(v));
         return '<button class="rxin'+(v===""||v==null?" ph":"")+'" data-act="wheel" data-eye="'+x[0]+'" data-ek="'+k+'">'+disp+'</button>';
       }).join("")+'</div>').join("")
-    +(rxViolations.length?'<div class="warnbox">'+rxViolations.map(w=>'<div>'+esc(w)+'</div>').join("")+'</div>':'')
+    +'<div class="warnbox'+(rxViolations.length?"":" hide")+'" id="fs_rxwarn">'+rxViolations.map(w=>'<div>'+esc(w)+'</div>').join("")+'</div>'
     +'<div class="row2" style="margin-top:12px"><div class="field"><label class="lbl">Customer name</label>'
     +'<input class="inp" data-f="patientRef" value="'+esc(f.patientRef)+'" placeholder="Customer name / ref"></div>'
     +'<div class="field"><label class="lbl">Customer mobile</label>'
@@ -4785,7 +4844,9 @@ function renderOrderForm(){
     +'<div class="field"><label class="lbl">Frame <span style="font-weight:400;color:#DC2626">— required</span></label><div class="optgrid">'
     +FRAME_TYPES.map(t=>'<button class="opt'+(f.frameType===t?" on":"")+'" data-act="setv" data-k="frameType" data-v="'+esc(t)+'">'+t+'</button>').join("")+'</div></div>'
     +'<div class="row2"><div class="field"><label class="lbl">Dia <span style="font-weight:400;color:#DC2626">— required, mm</span></label>'
-    +'<input class="inp" type="number" inputmode="decimal" data-f="diameter" value="'+esc(f.diameter)+'" placeholder="'+(detail&&detail[3]!=null?'e.g. '+detail[4]:'e.g. 65')+'"></div>'
+    +'<input class="inp" type="number" inputmode="decimal" data-f="diameter" data-act="diaguard"'
+    +(detail&&detail[3]!=null?' min="'+detail[3]+'" max="'+detail[4]+'"':'')
+    +' value="'+esc(f.diameter)+'" placeholder="'+(detail&&detail[3]!=null?detail[3]+'–'+detail[4]:'e.g. 65')+'"></div>'
     +'<div class="field" style="display:flex;flex-direction:column"><label class="lbl">Thickness <span style="font-weight:400;color:#DC2626">— required</span></label><div class="optgrid" style="flex:1">'
     +THICKNESS_OPTS.map(t=>'<button class="opt'+(f.thickness===t?" on":"")+'" data-act="setv" data-k="thickness" data-v="'+esc(t)+'">'+t+'</button>').join("")+'</div></div></div>'
     +'<div class="row2"><div class="field"><label class="lbl">Uncoat</label><div style="display:flex;gap:6px">'
@@ -4800,31 +4861,32 @@ function renderOrderForm(){
   openModal(sheetHead(isEdit?"Edit order":"Book order")
     +cust+'<div class="divider"></div>'
     +typeBlock
-    +'<div class="row2"><div class="field"><label class="lbl">Qty</label><input class="inp" type="number" inputmode="numeric" data-f="qty" data-act="calc" value="'+esc(f.qty)+'"></div>'
-    +'<div class="field"><label class="lbl">ED <span style="font-weight:400;color:#94A3B8">— optional, mm</span></label>'
-    +'<input class="inp" inputmode="decimal" data-f="ed" value="'+esc(f.ed)+'" placeholder="e.g. 52"></div></div>'
+    +'<div class="row3"><div class="field"><label class="lbl">ED <span style="font-weight:400;color:#94A3B8">— optional, mm</span></label>'
+    +'<input class="inp" inputmode="decimal" data-f="ed" value="'+esc(f.ed)+'" placeholder="e.g. 52"></div>'
+    +'<div class="field"><label class="lbl">Qty</label><input class="inp" type="number" inputmode="numeric" data-f="qty" data-act="calc" value="'+esc(f.qty)+'"></div>'
+    +'<div class="field"><label class="lbl">GST</label>'
+    +'<select class="inp" data-f="gstRate" data-act="gstratesel">'+GST_RATES.map(r=>
+      '<option value="'+r+'"'+(String(f.gstRate)===r?' selected':'')+'>'+r+'%</option>').join("")+'</select></div></div>'
     +'<div class="row2">'
-    +'<div class="field"><label class="lbl">Bonzer price <span style="font-weight:400;color:#94A3B8">— reference only</span></label>'
-    +'<div class="inp" style="background:#F8FAFC;color:#64748B;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:9px 13px">'
+    +'<div class="field" style="display:flex;flex-direction:column"><label class="lbl">Bonzer price <span style="font-weight:400;color:#94A3B8">— reference only</span></label>'
+    +'<div class="inp" style="background:#F8FAFC;color:#64748B;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:9px 13px;flex:1;justify-content:center">'
     +(detail?'<span style="font-weight:700;color:#0F172A">'+money(detail[0])+'</span>'
       +'<span style="font-size:10.5px;color:#94A3B8">+ '+money(detail[2])+' tax'+(detail[1]?' · Bonzer\'s cost '+money(detail[1]):'')+'</span>'
       :'<span>—</span>')+'</div></div>'
-    +'<div class="field"><label class="lbl">Customer rate (excl GST)</label><input class="inp" type="number" inputmode="decimal" data-f="price" data-act="calc" value="'+esc(f.price)+'" placeholder="0.00"></div></div>'
-    +'<div class="row2">'
-    +'<div class="field"><label class="lbl">Your cost</label><input class="inp" type="number" inputmode="decimal" data-f="cost" data-act="calc" value="'+esc(f.cost)+'" placeholder="0.00"></div>'
-    +'<div class="field"><label class="lbl">GST rate</label>'
-    +'<select class="inp" data-f="gstRate" data-act="gstratesel">'+GST_RATES.map(r=>
-      '<option value="'+r+'"'+(String(f.gstRate)===r?' selected':'')+'>'+r+'%</option>').join("")+'</select></div></div>'
-    +'<div class="field"><label class="lbl">Discount <span style="font-weight:400;color:#94A3B8">— optional</span></label>'
-    +'<div class="chips">'+DISCOUNT_TYPES.map(dt=>'<button class="chip'+(f.discountType===dt[0]?" on":"")+'" data-act="setv" data-k="discountType" data-v="'+dt[0]+'">'+dt[1]+'</button>').join("")+'</div>'
-    +(f.discountType!=="none"?'<div class="row2" style="margin-top:8px">'
+    +'<div class="field" style="display:flex;flex-direction:column"><label class="lbl">Discount <span style="font-weight:400;color:#94A3B8">— optional</span></label>'
+    +'<div class="chips" style="flex:1;align-items:center">'+DISCOUNT_TYPES.map(dt=>'<button class="chip'+(f.discountType===dt[0]?" on":"")+'" data-act="setv" data-k="discountType" data-v="'+dt[0]+'">'+dt[1]+'</button>').join("")+'</div></div></div>'
+    +(f.discountType!=="none"?'<div class="row2">'
       +'<div class="field"><label class="lbl">'+(f.discountType==="pct"?"Percent off":"Amount off (₹)")+'</label>'
       +'<input class="inp" type="number" inputmode="decimal" data-f="discountValue" data-act="calc" value="'+esc(f.discountValue)+'" placeholder="'+(f.discountType==="pct"?"e.g. 10":"e.g. 500")+'"></div>'
       +'<div class="field"><label class="lbl">Code / reason</label>'
       +'<input class="inp" data-f="discountCode" value="'+esc(f.discountCode)+'" placeholder="e.g. DIWALI10, Loyalty"></div></div>'
-      +(recentCodes.length?'<div class="chips" style="margin-top:8px">'+recentCodes.map(c=>
+      +(recentCodes.length?'<div class="chips" style="margin-bottom:14px">'+recentCodes.map(c=>
         '<button class="chip'+(f.discountCode===c?" on":"")+'" data-act="setv" data-k="discountCode" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>':'')
-      :'')+'</div>'
+      :'')
+    +'<div class="row2">'
+    +'<div class="field"><label class="lbl">Customer rate (excl GST)</label>'
+    +'<input class="inp" type="number" inputmode="decimal" data-f="price" data-act="calc" value="'+esc(f.price)+'" placeholder="0.00"></div>'
+    +'<div class="field"><label class="lbl">Your cost</label><input class="inp" type="number" inputmode="decimal" data-f="cost" data-act="calc" value="'+esc(f.cost)+'" placeholder="0.00"></div></div>'
     +'<div class="mprev" id="mprev">'+marginPreview(taxable,gst,inv,prof,discount)+'</div>'
     +'<div class="row2"><div class="field"><label class="lbl">Promised date <span style="font-weight:400;color:#DC2626">— required</span></label>'
     +'<input class="inp" type="date" id="fs_promised" data-f="promised" data-act="promisedguard" value="'+esc(f.promised)+'"></div>'
@@ -5355,7 +5417,7 @@ document.addEventListener("click",async function(ev){
       await persist(); closeModal(); render(); break; }
 
     case "sec": grabForm(); FS.sec[v]=!FS.sec[v]; renderOrderForm(); break;
-    case "setv": grabForm(); FS[t.getAttribute("data-k")]=v; renderOrderForm(); break;
+    case "setv": grabForm(); FS[t.getAttribute("data-k")]=v; if(t.getAttribute("data-k")==="discountType")syncPriceFromDiscount(); renderOrderForm(); break;
     case "gotoadddealer": closeModal(); ST.nav="practices"; render(); openPracticeEditor(""); break;
     case "wheel": openWheelPicker(t.getAttribute("data-eye"),t.getAttribute("data-ek")); break;
     case "wheeldone": if(WP) closeWheelPicker(true); break;
@@ -5375,6 +5437,7 @@ document.addEventListener("click",async function(ev){
       if(!FS.brandOther&&((ITEM_HIERARCHY[FS.brand]||{})[FS.brandName]||[]).length>1&&!FS.item.trim()){alert("Pick an item.");break;}
       if(FS.od.sph===""&&FS.os.sph===""){alert("Enter at least one sphere value.");break;}
       if(!FS.promised){alert("Pick a promised delivery date before saving.");break;}
+      { const rxViol=rxRangeViolations(FS); if(rxViol.length){alert(rxViol.join("\n"));break;} }
       const orderNo=isEdit?FS.orderNo:genOrderNo(name,new Date());
       const fields={
         orderNo:orderNo,
@@ -5465,6 +5528,7 @@ document.addEventListener("input",function(ev){
     let v=el.value.replace(/[^0-9]/g,"").slice(0,6);
     if(v!==el.value) el.value=v;
   }
+  if(el.getAttribute&&el.getAttribute("data-act")==="diaguard"&&FS){refreshOrderSaveBtn();}
   if(el.id==="q"||el.id==="pq"){
     if(el.id==="q")ST.query=el.value; else ST.pQuery=el.value;
     const sc=window.scrollY; render(); window.scrollTo(0,sc);
@@ -5474,6 +5538,11 @@ document.addEventListener("input",function(ev){
   }
   if(FS&&el.getAttribute&&el.getAttribute("data-act")==="calc"){
     grabForm();
+    if(el.getAttribute("data-f")!=="price"){
+      syncPriceFromDiscount();
+      const priceEl=document.querySelector('[data-f="price"]');
+      if(priceEl&&document.activeElement!==priceEl) priceEl.value=FS.price;
+    }
     const tx=oTaxable(FS),gst=oGst(FS),cost=orderCost(FS),disc=oDiscount(FS);
     const mp=document.getElementById("mprev"); if(mp)mp.innerHTML=marginPreview(tx,gst,tx+gst,tx-cost,disc);
   }
@@ -5489,6 +5558,7 @@ document.addEventListener("change",function(ev){
     FS.brandName=opts.length===1?opts[0]:""; // auto-pick when there's only one real option (e.g. SL → NL)
     const items0=(ITEM_HIERARCHY[FS.brand]||{})[FS.brandName]||[];
     FS.itemId=items0.length===1?items0[0][0]:""; FS.item=items0.length===1?items0[0][1]:"";
+    syncPriceFromDiscount();
     renderOrderForm(); return;
   }
   if(el.getAttribute&&el.getAttribute("data-act")==="brandnamesel"&&FS){
@@ -5496,6 +5566,7 @@ document.addEventListener("change",function(ev){
     FS.brandName=el.value;
     const items=(ITEM_HIERARCHY[FS.brand]||{})[FS.brandName]||[];
     FS.itemId=items.length===1?items[0][0]:""; FS.item=items.length===1?items[0][1]:""; // auto-pick single-item catalogues
+    syncPriceFromDiscount();
     renderOrderForm(); return;
   }
   if(el.getAttribute&&el.getAttribute("data-act")==="itemsel"&&FS){
@@ -5503,6 +5574,7 @@ document.addEventListener("change",function(ev){
     const items=(ITEM_HIERARCHY[FS.brand]||{})[FS.brandName]||[];
     const found=items.find(it=>it[0]===el.value);
     FS.itemId=found?found[0]:""; FS.item=found?found[1]:"";
+    syncPriceFromDiscount();
     renderOrderForm(); return;
   }
   if(el.getAttribute&&el.getAttribute("data-act")==="rerender"&&FS){grabForm();renderOrderForm();return;}
@@ -5519,6 +5591,11 @@ document.addEventListener("change",function(ev){
   }
   if(el.getAttribute&&el.getAttribute("data-act")==="calc"&&FS){
     grabForm();
+    if(el.getAttribute("data-f")!=="price"){
+      syncPriceFromDiscount();
+      const priceEl=document.querySelector('[data-f="price"]');
+      if(priceEl&&document.activeElement!==priceEl) priceEl.value=FS.price;
+    }
     const tx=oTaxable(FS),gst=oGst(FS),cost=orderCost(FS),disc=oDiscount(FS);
     const mp=document.getElementById("mprev"); if(mp)mp.innerHTML=marginPreview(tx,gst,tx+gst,tx-cost,disc);
     return;
