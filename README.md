@@ -1,96 +1,97 @@
-# lensmart
 # Murali — Lens Order Book
 
-A single-file, installable web app for optical wholesalers to manage prescription lens orders, customer accounts, GST invoicing, and profitability — offline-first, no backend, no monthly fee
+A lightweight, offline-first Progressive Web App for independent lens dealers to track every order placed with their optical lab, from booking to delivery — no backend, no build step, no external dependencies.
 
-Built for the Indian market (GST, CGST/SGST/IGST handling, GSTIN validation).
+Built around Bonzer's lens catalogue and pricing data, but works for any brand.
 
-## What it does
+---
 
-**Orders**
-- Full Rx capture (SPH/CYL/AXIS/ADD, PD, segment height), plus ready readers and frame/accessory orders
-- 5-stage pipeline: Order placed → At lab → Shipment received → Dispatched → Delivered
-- Dispatch tracking with method (Bus / Courier / Our staff) and free-text detail (bus number, courier + tracking no.)
-- Urgent flag, promised delivery date (required, with live lateness tracking that only flags an order once the promised *day* has fully passed)
-- Optional per-order discount (percentage or flat amount) with a code/reason tag, applied before GST
-- Partial payments — record any amount toward an order; the remaining balance stays tracked as outstanding until it's fully settled
-- Cancel (soft, stays in records) or delete (permanent) any order
-- Default view shows only open orders; Delivered and Cancelled are one tap away, not mixed in
-- Sort by date placed, customer, or city; filter by Urgent / Unpaid / Delivered / Cancelled
+## Features
 
-**Customers**
-- Full contact + billing address + GSTIN, with live format and checksum validation
-- Payment terms per customer, with an automatic "past terms" flag
-- Win-back filter — flags customers with no orders in 60+ days
-- One-tap WhatsApp payment reminder (pre-filled with amount owed and how overdue it is)
-- Export the current filtered list as plain text (for a WhatsApp broadcast list) or CSV
+### Order management
+- Book orders with dealer, Rx (SPH/CYL/AXIS/ADD/PRISM per eye via scroll-wheel pickers), frame, lens, and coating details
+- **Item-aware validation** — Dia, SPH, and ADD are automatically constrained to the exact range the selected catalogue item supports (pulled from Bonzer's own published data), so an out-of-range value is caught before the order ships, not after
+- 5-stage pipeline: Order placed → At lab → Received from lab → Dispatched → Delivered
+- At-a-glance summary counts on the Orders screen: **At lab / waiting**, **Shipment received**, **Out for delivery**
+- Filter by Open, Urgent, Unpaid, Delivered, or Cancelled, plus date-range chips
+- Search by dealer, city, or order/job number
+- Auto-generated order numbers (`dealer-slug-ddmmyyyy-seq`)
+- Full order detail view, edit, and cancel
 
-**Reports**
-- Overview: revenue, cash collected, cost, gross/net profit, margin, average order value, debtor days — each with a period-over-period trend arrow
-- Revenue by month as a smooth trend chart; discounts broken down by code/type as a compact donut + legend
-- Breakdowns by city, district, state, delivery route, lens type, material, coatings
-- Customer-level ledger sorted by outstanding balance, or by billed/order count
-- Service metrics: average turnaround time, orders overdue against their promised date
-- GST summary: taxable value, CGST/SGST/IGST, by rate
-- One-tap Excel export (.xlsx, multiple sheets: orders, customers, GST, discounts, monthly summary)
+### Dealer (dispensary) management
+- Dealer directory with outstanding balance, order count, and billed total per dealer
+- **Bonzer dealer import** — one-tap import of Bonzer's own exported dealer list; safe to re-run, only adds names that don't already exist
+- **Bonzer Partnership Program** filter, flagging enrolled dealers
+- "Quiet 7+ days" filter to catch dealers who've gone dark
+- Per-dealer statement, payment reminders, and contact list export (CSV)
 
-**Expenses**
-- Simple categorized expense log, factored into net profit
+### GST / billing
+- GST 2.0–aware defaults (5% lenses, 18% frames) with editable per-rate HSN codes in Settings
+- CGST+SGST vs IGST decided automatically from your state vs. the dealer's
+- Per-order discounts (percentage or flat), tracked against Bonzer's reference price
+- Outstanding balance and paid/unpaid tracking
 
-**GSTIN handling**
-- Live, character-by-character format validation (state code, PAN structure, checksum) — flags the exact problem as you type, not just on save
-- Auto-fills the customer's state from a valid GSTIN
-- One-tap link to check a GSTIN on Razorpay's free lookup tool
+### Reports
+- Overview, Dealers, Products, Service, and GST tabs
+- Revenue, gross margin, cash collected, days sales outstanding, and period-over-period deltas
+- Discount breakdown by code or type
 
-**Data & offline**
-- Everything is stored locally on the device (IndexedDB); no account, no server, no internet required to use it day-to-day
-- Manual backup/restore as a JSON file
-- Installable as a home-screen app on both iOS and Android (see below)
-- Update banner — checks for a newer version on every launch and prompts you to refresh, instead of silently running stale code
+### Expenses
+- Simple expense log by category (stock, lab charges, delivery, rent, salaries, etc.)
 
-## Files in this repo
+### Data & offline
+- Installable as a PWA; works offline once installed, via a service worker with an in-app update banner
+- **All data stays on-device** — layered storage (IndexedDB → localStorage → in-memory fallback); nothing is sent to a server
+- One-tap JSON backup and restore
+- Excel export (`.xlsx`) via a hand-written, dependency-free XLSX writer — no external libraries involved
 
-| File | Purpose |
-|---|---|
-| `Murali.html` | The entire app — UI, logic, and styling in one file |
-| `manifest.json` | Required for Android's "Add to Home screen" prompt |
-| `sw.js` | Service worker — enables offline use and the update-check banner |
-| `icon-192.png`, `icon-512.png` | App icons (used by both iOS and Android) |
+---
 
-All five files must be deployed together, in the same folder. Android specifically checks for a valid manifest + icons + a working service worker before it will offer to install the app; if any are missing, the install option just silently doesn't appear.
+## Tech stack
 
-## Deploying
+- Vanilla JavaScript, HTML, CSS — no framework, no build step, no `npm install`
+- Single self-contained HTML file for the entire app (markup, styles, and logic)
+- Zero external runtime dependencies
 
-Any static file host works (GitHub Pages, Netlify, Vercel, S3, etc.) — no build step, no server-side code, no database.
+## Getting started
 
-**GitHub Pages:**
-1. Upload all five files to the repo root (or a subfolder — just keep them together)
-2. Settings → Pages → set the source branch/folder
-3. Open the resulting `https://` URL
+There's no build step — clone and open:
 
-## Installing on a phone
+```bash
+git clone <your-repo-url>
+cd murali
+```
 
-**Android (Chrome):** open the link → menu (⋮) → *Add to Home screen*
+Then either:
+- Open `Murali.html` directly in a browser, or
+- Serve it locally so the service worker and "install as app" prompt work correctly:
+  ```bash
+  npx serve .
+  # or
+  python3 -m http.server
+  ```
 
-**iPhone (Safari only — Apple doesn't allow installing from Chrome on iOS):** open the link → Share icon → *Add to Home Screen*
+To install as an app: open the served page in Chrome/Edge/Safari and choose **Add to Home Screen** / **Install app**.
 
-Once installed, it opens full-screen with no browser chrome, works offline, and checks for updates automatically.
+## Project structure
 
-## First-time setup
+```
+├── Murali.html      # the app — markup, styles, and logic
+├── manifest.json    # PWA manifest (name, icons, theme colour)
+├── sw.js            # service worker — offline caching + update checks
+└── icon-192.png      # app icon
+```
 
-Open Settings (gear icon) and fill in:
-- Business name and GSTIN
-- **Your state** — this is what the app compares against each customer's state to decide CGST+SGST vs IGST on every order
-- Default GST rate and HSN codes for lenses/frames/readers
+> Rename `Murali.html` to `index.html` if you're deploying via GitHub Pages.
 
-## Tech notes
+## Data & privacy
 
-- Vanilla JavaScript, no framework, no build tooling — the whole app is one HTML file for easy hosting and zero dependency risk
-- Data persists in IndexedDB (falls back gracefully if unavailable)
-- Charts (trend line, donuts) are hand-built inline SVG — no charting library
-- Excel export is generated client-side (no server round-trip)
-- Service worker uses a network-first strategy with an explicit update-confirmation flow, so new versions don't get stuck behind a stale cache indefinitely, and don't silently swap out from under someone mid-task
+Everything entered — orders, dealer details, Rx data, expenses — is stored only on the device it's used on. Nothing is transmitted anywhere. Because of that, regular backups (**Settings → Backup**) matter: clearing site data or switching browsers/devices without a backup means losing that data for good.
 
-## Support
+## Versioning
 
-This is a bespoke single-business tool, not a maintained public product — there's no issue tracker or support channel. Changes are made directly to `Murali.html` as needed.
+The current build is shown at the bottom of **Settings** (e.g. `Murali v1.0.0 · 02/08/2026`). Bump `APP_VERSION` and `APP_BUILD_DATE` near the top of `Murali.html` when shipping a change.
+
+## License
+
+_Not yet specified — add a `LICENSE` file and reference it here (MIT is a common default for a project like this)._
