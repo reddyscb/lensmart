@@ -621,6 +621,8 @@ const SORT_OPTS=[["date","Date placed"],["customer","Dealer"],["city","City"],["
 // back than "Last 3 mo" is what the Excel export is for, not this screen.
 const ORDER_PERIODS=[{k:"today",label:"Today"},{k:"week",label:"This week"},{k:"m0",label:"This month"},
  {k:"m1",label:"Last month"},{k:"m3",label:"Last 3 mo"}];
+const EXPORT_PERIODS=[{k:"lw",label:"Last week"},{k:"m1",label:"Last month"},{k:"m3",label:"Last 3 months"},
+ {k:"m6",label:"Last 6 months"},{k:"ytd",label:"This year"},{k:"all",label:"All"}];
 const GST_RATES=["0","5","12","18","28"];
 // Standard fallbacks per the GST 2.0 structure effective 22 Sept 2025, which scrapped the 12%
 // optical slab: corrective/prescription lenses dropped 12% -> 5% (HSN 9001), frames sit at 18%
@@ -3218,6 +3220,16 @@ const fmtDate=iso=>{const d=new Date(iso);return d.toLocaleDateString("en-IN",{d
 const fmtDay=iso=>iso?new Date(iso).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"2-digit"}):"";
 const monthKey=iso=>{const d=new Date(iso);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");};
 const monthLabel=k=>{const p=k.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleDateString("en-IN",{month:"short",year:"2-digit"});};
+// The month that needs to be closed out is always the one just before the current calendar
+// month — the moment the calendar rolls into a new month, last month becomes due.
+function targetCloseMonth(){const n=new Date();const d=new Date(n.getFullYear(),n.getMonth()-1,1);return monthKey(d.toISOString());}
+function monthEndDue(){
+  const target=targetCloseMonth();
+  if(ST.biz.lastMonthEndExport===target) return false; // already closed out
+  const hasData=ST.orders.some(o=>monthKey(o.createdAt)===target)||ST.expenses.some(e=>monthKey(e.date)===target);
+  if(!hasData){ ST.biz.lastMonthEndExport=target; persist(); return false; } // nothing to close out — don't nag over an empty month
+  return true;
+}
 const daysAgo=iso=>Math.floor((Date.now()-new Date(iso).getTime())/86400000);
 const daysBetween=(a,b)=>Math.max(0,Math.round((new Date(b)-new Date(a))/86400000));
 const pct=(a,b)=>b?(a/b*100):0;
@@ -3236,7 +3248,7 @@ const emptyEye=()=>({sph:"",cyl:"",axis:"",add:"",prism:"",base:"—"});
 const emptyPractice=()=>({name:"",contact:"",phone:"",email:"",gstin:"",addr1:"",addr2:"",city:"",district:"",
  state:"Telangana",pin:"",area:"",terms:"30",notes:"",availablePoints:"",stockPoints:"",bonzerProgram:"no"});
 const emptyBiz=()=>({name:"",gstin:"",state:"Telangana",gst:"5",
- hsn0:"",hsn5:"9001",hsn12:"9001",hsn18:"9003",hsn28:"",bonzerSeeded:false,programMigrated:false});
+ hsn0:"",hsn5:"9001",hsn12:"9001",hsn18:"9003",hsn28:"",bonzerSeeded:false,programMigrated:false,lastMonthEndExport:""});
 // One-time seed list of dealers exported from Bonzer's own system — imported via a button in
 // Settings rather than baked into app startup, so it only ever runs when explicitly triggered,
 // merges with (never replaces) whatever's already there, and skips any name that already exists.
@@ -3705,9 +3717,12 @@ function fyStart(d){const y=d.getFullYear();return d.getMonth()>=3?y:y-1;}
 function periodRange(k){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),d=n.getDate();
  if(k==="today")return[new Date(y,m,d),new Date(y,m,d+1)];
  if(k==="week"){const dow=n.getDay(),diff=dow===0?-6:1-dow;const mon=new Date(y,m,d+diff);return[mon,new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+7)];}
+ if(k==="lw")return[new Date(y,m,d-7),new Date(y,m,d+1)]; // trailing 7 days, distinct from "week" (current calendar week) used elsewhere
  if(k==="m0")return[new Date(y,m,1),new Date(y,m+1,1)];
  if(k==="m1")return[new Date(y,m-1,1),new Date(y,m,1)];
  if(k==="m3")return[new Date(y,m-2,1),new Date(y,m+1,1)];
+ if(k==="m6")return[new Date(y,m-5,1),new Date(y,m+1,1)];
+ if(k==="ytd")return[new Date(y,0,1),new Date(y,m,d+1)];
  if(k==="fy"){const s=fyStart(n);return[new Date(s,3,1),new Date(s+1,3,1)];}
  if(k==="fy1"){const s=fyStart(n)-1;return[new Date(s,3,1),new Date(s+1,3,1)];}
  return[new Date(1970,0,1),new Date(y+50,0,1)];}
@@ -3766,7 +3781,7 @@ function reminderText(p,stats){
 /* ============ STATE ============ */
 const ST={
   orders:[], practices:[], expenses:[], biz:emptyBiz(),
-  nav:"orders", filter:"all", query:"", period:"m0", orderPeriod:"m0", repView:"overview", sortBy:"value", orderSort:"date",
+  nav:"orders", filter:"all", query:"", period:"m0", orderPeriod:"m0", exportPeriod:"m1", repView:"overview", sortBy:"value", orderSort:"date",
   pDist:"All", pQuery:"", pFilter:"all", discView:"code", ready:false, storeMode:"memory"
 };
 const pMap=()=>{const m={};ST.practices.forEach(p=>m[p.name]=p);return m;};
@@ -4349,6 +4364,16 @@ function openSettings(){
     +'<button class="btn-main" style="flex:1;margin-top:0" data-act="backup">'+ic("save",17)+' Backup</button>'
     +'<button class="btn-main alt" style="flex:1;margin-top:0" data-act="restore">'+ic("upload",17)+' Restore</button></div>'
     +'<p class="hint">Backup downloads a .json file with every order, dealer and expense. Keep it in Google Drive.</p>'
+    +'<div class="sectitle">Export report</div>'
+    +'<div class="chips" style="margin-bottom:10px">'+EXPORT_PERIODS.map(p=>
+      '<button class="chip'+(ST.exportPeriod===p.k?" on":"")+'" data-act="exportperiod" data-v="'+p.k+'">'+p.label+'</button>').join("")+'</div>'
+    +(function(){
+      const range=ST.exportPeriod==="all"?null:periodRange(ST.exportPeriod);
+      const n=range?ST.orders.filter(o=>inRange(o.createdAt,range)).length:ST.orders.length;
+      const ne=range?ST.expenses.filter(e=>inRange(e.date,range)).length:ST.expenses.length;
+      return '<p class="hint" style="margin-top:0">'+n+' order'+(n!==1?"s":"")+(ne?' and '+ne+' expense entr'+(ne!==1?"ies":"y"):"")+' in this range.</p>';
+    })()
+    +'<button class="btn-main" data-act="exportnow">'+ic("download",17)+' Download Excel</button>'
     +'<div class="sectitle">Bonzer dealer import</div>'
     +'<div class="infobox">'+BONZER_DEALER_SEED.length+' dealers from Bonzer\'s system, ready to import. Only names that don\'t already exist get added — safe to tap even if you\'ve done this before. Everything except name, phone (where genuine), and Bonzer\'s dealer ID starts blank — address, GSTIN, district and payment terms still need filling in per dealer.</div>'
     +'<button class="btn-sec" data-act="importbonzerdealers">'+ic("upload",16)+' Import '+BONZER_DEALER_SEED.length+' Bonzer dealers</button>'
@@ -4786,9 +4811,6 @@ function renderOrderForm(){
       +'<option value="">Select…</option>'
       +ST.practices.map(p=>'<option value="'+esc(p.name)+'"'+(f.practice===p.name?' selected':'')+'>'+esc(p.name)+(p.city?" — "+esc(p.city):"")+'</option>').join("")
       +'</select></div>'
-      +(chosen?'<div class="chosen">'+ic("pin",12)+' '+esc(geoLine(chosen)||chosen.city||"No address")
-        +(chosen.gstin?' · GSTIN '+esc(chosen.gstin):'')
-        +(chosen.terms?'<span style="color:#64748B"> · terms '+(chosen.terms==="0"?"on delivery":esc(chosen.terms)+"d")+'</span>':'')+'</div>':'')
       +'<button type="button" data-act="gotoadddealer" style="background:none;border:none;padding:0;margin-top:8px;color:#0369A1;font-weight:700;font-size:12.5px;display:inline-flex;align-items:center;gap:5px">'
       +ic("plus",13)+' Dealer not listed? Add one</button>';
   }
@@ -4867,6 +4889,7 @@ function renderOrderForm(){
     +'<div class="field"><label class="lbl">GST</label>'
     +'<select class="inp" data-f="gstRate" data-act="gstratesel">'+GST_RATES.map(r=>
       '<option value="'+r+'"'+(String(f.gstRate)===r?' selected':'')+'>'+r+'%</option>').join("")+'</select></div></div>'
+    +(chosen&&chosen.bonzerProgram==="yes"?'<div class="infobox">'+ic("check",13)+' '+esc(chosen.name)+' is enrolled in the Bonzer Partnership Program</div>':'')
     +'<div class="row2">'
     +'<div class="field" style="display:flex;flex-direction:column"><label class="lbl">Bonzer price <span style="font-weight:400;color:#94A3B8">— reference only</span></label>'
     +'<div class="inp" style="background:#F8FAFC;color:#64748B;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:9px 13px;flex:1;justify-content:center">'
@@ -4910,11 +4933,19 @@ function marginPreview(taxable,gst,inv,prof,discount){
 }
 
 /* ============ EXCEL EXPORT ============ */
-function exportExcel(){
-  if(!ST.orders.length&&!ST.expenses.length){alert("Nothing to export yet.");return;}
+function exportExcel(orders,expenses,opts){
+  orders=orders||ST.orders; expenses=expenses||ST.expenses; opts=opts||{};
+  if(!orders.length&&!expenses.length){alert("Nothing to export yet.");return;}
   const sheets=[];
 
-  sheets.push({name:"Orders",rows:XL.objRows(ST.orders.map(o=>{const p=pOf(o.practice);
+  sheets.push({name:"Report Info",rows:XL.objRows([
+    {Field:"Report type",Value:opts.label?"Month close-out":"Full history"},
+    {Field:"Period covered",Value:opts.label?opts.label:"All orders and expenses on record"},
+    {Field:"Month ID",Value:opts.monthId||""},
+    {Field:"Generated on",Value:fmtDate(new Date().toISOString())}
+  ])});
+
+  sheets.push({name:"Orders",rows:XL.objRows(orders.map(o=>{const p=pOf(o.practice);
     const tx=oTaxable(o),g=oGst(o),inter=isInterState(o);
     return {
     "Order no":o.orderNo||"","Job no":o.jobRef||"","Date":fmtDate(o.createdAt),"Dealer":o.practice,"GSTIN":p.gstin||"",
@@ -4956,7 +4987,7 @@ function exportExcel(){
     "Past terms":isPastTerms(o,p.terms)?"YES":"","Notes":o.notes||""};}))});
 
   sheets.push({name:"Dealers",rows:XL.objRows(ST.practices.map(p=>{
-    const co=ST.orders.filter(o=>o.practice===p.name&&!o.cancelled);
+    const co=orders.filter(o=>o.practice===p.name&&!o.cancelled);
     const billed=co.reduce((s,o)=>s+orderReceivable(o),0);
     const tx=co.reduce((s,o)=>s+orderRevenue(o),0);
     const cost=co.reduce((s,o)=>s+orderCost(o),0);
@@ -4971,7 +5002,7 @@ function exportExcel(){
       "Total paid":paid,"Outstanding":billed-paid,"Notes":p.notes||""};}))});
 
   const byCust={};
-  ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=o.practice;byCust[k]=byCust[k]||{n:0,billed:0,tx:0,cost:0,paid:0,oldest:null};
+  orders.filter(o=>!o.cancelled).forEach(o=>{const k=o.practice;byCust[k]=byCust[k]||{n:0,billed:0,tx:0,cost:0,paid:0,oldest:null};
     const c=byCust[k];c.n++;c.billed+=orderReceivable(o);c.tx+=orderRevenue(o);c.cost+=orderCost(o);
     c.paid+=orderPaidAmt(o);
     if(orderOutstanding(o)>0&&(!c.oldest||new Date(o.createdAt)<new Date(c.oldest)))c.oldest=o.createdAt;});
@@ -4984,7 +5015,7 @@ function exportExcel(){
       "Oldest unpaid (days)":c.oldest?daysAgo(c.oldest):""};}).sort((a,b)=>b["Total billed"]-a["Total billed"]))});
 
   // Discounts — cancelled orders never happened, so excluded, matching every other financial sheet
-  const discAll=ST.orders.filter(o=>!o.cancelled&&oDiscount(o)>0);
+  const discAll=orders.filter(o=>!o.cancelled&&oDiscount(o)>0);
   const byCode={};
   discAll.forEach(o=>{const k=o.discountCode||"(no code)";
     byCode[k]=byCode[k]||{orders:0,amount:0,custs:new Set(),types:new Set()};
@@ -5005,7 +5036,7 @@ function exportExcel(){
 
   // GST summary by month x rate (cancelled orders never happened, so excluded from tax owed)
   const gs={};
-  ST.orders.filter(o=>!o.cancelled).forEach(o=>{const key=monthKey(o.createdAt)+"|"+oRate(o);
+  orders.filter(o=>!o.cancelled).forEach(o=>{const key=monthKey(o.createdAt)+"|"+oRate(o);
     gs[key]=gs[key]||{m:monthKey(o.createdAt),r:oRate(o),n:0,tx:0,cgst:0,sgst:0,igst:0};
     const g=gs[key],t=oGst(o);g.n++;g.tx+=oTaxable(o);
     if(isInterState(o))g.igst+=t;else{g.cgst+=t/2;g.sgst+=t/2;}});
@@ -5014,22 +5045,22 @@ function exportExcel(){
       CGST:g.cgst,SGST:g.sgst,IGST:g.igst,"Total tax":g.cgst+g.sgst+g.igst,
       "Invoice total":g.tx+g.cgst+g.sgst+g.igst};}))});
 
-  sheets.push({name:"Expenses",rows:XL.objRows(ST.expenses.map(e=>({
+  sheets.push({name:"Expenses",rows:XL.objRows(expenses.map(e=>({
     Date:fmtDay(e.date),Category:e.category,Description:e.description||"",Amount:Number(e.amount)||0,Notes:e.notes||""})))});
 
   const mm={};
-  ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=monthKey(o.createdAt);mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};
+  orders.filter(o=>!o.cancelled).forEach(o=>{const k=monthKey(o.createdAt);mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};
     mm[k].tx+=orderRevenue(o);mm[k].gst+=oGst(o);mm[k].cost+=orderCost(o);mm[k].n++;});
-  ST.orders.filter(o=>o.paidAt&&!o.cancelled).forEach(o=>{const k=monthKey(o.paidAt);
+  orders.filter(o=>o.paidAt&&!o.cancelled).forEach(o=>{const k=monthKey(o.paidAt);
     mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};mm[k].cash+=orderPaidAmt(o);});
-  ST.expenses.forEach(e=>{const k=monthKey(e.date);mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};mm[k].exp+=Number(e.amount)||0;});
+  expenses.forEach(e=>{const k=monthKey(e.date);mm[k]=mm[k]||{tx:0,gst:0,cost:0,exp:0,n:0,cash:0};mm[k].exp+=Number(e.amount)||0;});
   sheets.push({name:"Monthly summary",rows:XL.objRows(Object.keys(mm).sort().map(k=>{const m=mm[k],gp=m.tx-m.cost;
     return {Month:monthLabel(k),Orders:m.n,"Revenue excl GST":m.tx,"GST charged":m.gst,
       "Billed incl GST":m.tx+m.gst,"Cash collected":m.cash,"Cost of goods":m.cost,"Gross profit":gp,
       "Margin %":Number(pct(gp,m.tx).toFixed(1)),Expenses:m.exp,"Net profit":gp-m.exp};}))});
 
   const grp=(fn,col,name)=>{const g={};
-    ST.orders.filter(o=>!o.cancelled).forEach(o=>{const k=fn(o)||"—";g[k]=g[k]||{n:0,qty:0,tx:0,cost:0,owed:0};
+    orders.filter(o=>!o.cancelled).forEach(o=>{const k=fn(o)||"—";g[k]=g[k]||{n:0,qty:0,tx:0,cost:0,owed:0};
       g[k].n++;g[k].qty+=oQty(o);g[k].tx+=orderRevenue(o);g[k].cost+=orderCost(o);
       g[k].owed+=orderOutstanding(o);});
     const rows=Object.keys(g).map(k=>{const x={};x[col]=k;x.Orders=g[k].n;x.Units=g[k].qty;
@@ -5045,11 +5076,11 @@ function exportExcel(){
   grp(o=>stateOf(o.practice),"State","By state");
   grp(o=>areaOf(o.practice),"Delivery route","By route");
 
-  const del=ST.orders.filter(o=>o.deliveredAt&&!o.cancelled);
+  const del=orders.filter(o=>o.deliveredAt&&!o.cancelled);
   const avgTat=del.length?del.reduce((s,o)=>s+daysBetween(o.createdAt,o.deliveredAt),0)/del.length:0;
-  const overdue=ST.orders.filter(isPastPromised);
-  const past=ST.orders.filter(o=>!o.cancelled&&isPastTerms(o,pOf(o.practice).terms));
-  const cancelledOrders=ST.orders.filter(o=>o.cancelled);
+  const overdue=orders.filter(isPastPromised);
+  const past=orders.filter(o=>!o.cancelled&&isPastTerms(o,pOf(o.practice).terms));
+  const cancelledOrders=orders.filter(o=>o.cancelled);
   sheets.push({name:"Service",rows:XL.objRows([
     {Metric:"Orders delivered",Value:del.length},
     {Metric:"Average turnaround (days)",Value:Number(avgTat.toFixed(1))},
@@ -5057,13 +5088,43 @@ function exportExcel(){
     {Metric:"Value past promised date",Value:overdue.reduce((s,o)=>s+orderReceivable(o),0)},
     {Metric:"Bills past payment terms",Value:past.length},
     {Metric:"Value past payment terms",Value:past.reduce((s,o)=>s+orderOutstanding(o),0)},
-    {Metric:"Urgent orders still open",Value:ST.orders.filter(o=>o.priority==="urgent"&&o.stage!=="delivered"&&!o.cancelled).length},
+    {Metric:"Urgent orders still open",Value:orders.filter(o=>o.priority==="urgent"&&o.stage!=="delivered"&&!o.cancelled).length},
     {Metric:"Cancelled orders",Value:cancelledOrders.length},
     {Metric:"Cancelled orders value",Value:cancelledOrders.reduce((s,o)=>s+orderReceivable(o),0)}
-  ].concat(STAGE_ORDER.map(k=>({Metric:"At stage: "+STAGES[k].label,Value:ST.orders.filter(o=>o.stage===k&&!o.cancelled).length}))))});
+  ].concat(STAGE_ORDER.map(k=>({Metric:"At stage: "+STAGES[k].label,Value:orders.filter(o=>o.stage===k&&!o.cancelled).length}))))});
 
-  downloadBlob(XL.build(sheets),"murali_report_"+new Date().toISOString().slice(0,10)+".xlsx",
+  downloadBlob(XL.build(sheets),opts.filename||("murali_report_"+new Date().toISOString().slice(0,10)+".xlsx"),
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+}
+
+// Mandatory month-close export: scopes every sheet to just the target month (via the orders/
+// expenses filter passed into exportExcel), names the file with that month's ID so it's
+// unambiguous which close-out it is, and marks the month done so the hard-stop clears.
+function exportMonthEnd(target){
+  const monthOrders=ST.orders.filter(o=>monthKey(o.createdAt)===target);
+  const monthExpenses=ST.expenses.filter(e=>monthKey(e.date)===target);
+  exportExcel(monthOrders,monthExpenses,{
+    label:monthLabel(target)+" ("+target+")",
+    monthId:target,
+    filename:"murali_monthend_"+target+".xlsx"
+  });
+  ST.biz.lastMonthEndExport=target;
+  persist();
+  render();
+}
+// The Settings-screen range export. "all" bypasses date filtering entirely (same as the old
+// header button always did); every other key scopes via the same periodRange()/inRange() used
+// throughout the rest of the app, so "Last month" here means the same thing it means anywhere else.
+function exportByPeriod(key){
+  const label=(EXPORT_PERIODS.find(p=>p.k===key)||{}).label||key;
+  if(key==="all"){ exportExcel(ST.orders,ST.expenses,{label:"All orders and expenses on record",filename:"murali_report_"+new Date().toISOString().slice(0,10)+".xlsx"}); return; }
+  const range=periodRange(key);
+  const rangeOrders=ST.orders.filter(o=>inRange(o.createdAt,range));
+  const rangeExpenses=ST.expenses.filter(e=>inRange(e.date,range));
+  exportExcel(rangeOrders,rangeExpenses,{
+    label:label,
+    filename:"murali_report_"+key+"_"+new Date().toISOString().slice(0,10)+".xlsx"
+  });
 }
 
 /* ============ BACKUP / RESTORE ============ */
@@ -5117,6 +5178,22 @@ function showToast(msg,tone){
 /* ============ MAIN RENDER ============ */
 function render(){
   PM=pMap();
+  if(monthEndDue()){
+    const target=targetCloseMonth();
+    const n=ST.orders.filter(o=>monthKey(o.createdAt)===target).length;
+    const ne=ST.expenses.filter(e=>monthKey(e.date)===target).length;
+    document.getElementById("app").innerHTML=
+      '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px;text-align:center">'
+      +'<div style="width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#0EA5E9,#075985);display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 6px 20px -6px rgba(7,89,133,.5)">'+ic("download",28)+'</div>'
+      +'<h1 style="font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-.02em">Close out '+monthLabel(target)+'</h1>'
+      +'<p style="font-size:14px;color:#64748B;line-height:1.6;margin:0 0 28px;max-width:320px">'
+      +'A new month has started, so it\'s time to download '+monthLabel(target)+'\'s report before continuing — '
+      +n+' order'+(n!==1?"s":"")+(ne?' and '+ne+' expense entr'+(ne!==1?"ies":"y"):"")+' will be included. This takes one tap.</p>'
+      +'<button class="btn-main" style="max-width:320px" data-act="domonthend" data-v="'+target+'">'+ic("check",18)+' Download '+monthLabel(target)+' report</button>'
+      +'<p style="font-size:11px;color:#94A3B8;margin-top:16px;max-width:280px">The app stays locked to this screen until this month-end report is downloaded — this doesn\'t affect the data itself, only access to the rest of the app.</p>'
+      +'</div>';
+    return;
+  }
   const open=ST.orders.filter(o=>o.stage!=="delivered"||!o.paid).length;
   const urgent=ST.orders.filter(o=>o.priority==="urgent"&&o.stage!=="delivered").length;
   let body="";
@@ -5138,8 +5215,7 @@ function render(){
     +'<p class="sub">'+esc(ST.biz.name||"Lens order book")+' · '+open+' open'
     +(urgent>0?' · <span class="urg">'+urgent+' urgent</span>':'')+'</p></div>'
     +'<div class="hdrbtns">'
-    +'<button class="btn-ghost" data-act="settings">'+ic("gear",17)+'</button>'
-    +'<button class="btn-dark" data-act="excel">'+ic("download",15)+' Excel</button></div></div>'
+    +'<button class="btn-ghost" data-act="settings">'+ic("gear",17)+'</button></div></div>'
     +'<div class="'+(navChanged?"tabbody tabbody-enter":"tabbody")+'">'+body+'</div>'
     +'<div class="fab-wrap"><div class="fab-wrap-inner"><button class="fab" data-act="fab">'+ic("plus",24)+'</button></div></div>'
     +'<nav class="nav">'
@@ -5171,7 +5247,11 @@ document.addEventListener("click",async function(ev){
     case "operiod": ST.orderPeriod=v; render(); break;
     case "repview": ST.repView=v; render(); break;
     case "sort": ST.sortBy=v; render(); break;
-    case "excel": exportExcel(); break;
+    case "exportperiod": {
+      const m=MODAL(); m.querySelectorAll("[data-bf]").forEach(el=>{ST.biz[el.getAttribute("data-bf")]=el.value;});
+      ST.exportPeriod=v; openSettings(); break; }
+    case "exportnow": exportByPeriod(ST.exportPeriod); break;
+    case "domonthend": exportMonthEnd(t.getAttribute("data-v")); break;
     case "backup": backup(); break;
     case "restore": document.getElementById("restoreFile").click(); break;
     case "importbonzerdealers": {
